@@ -1,0 +1,141 @@
+---
+import path from "node:path";
+import { url } from "../../utils/url-utils";
+import ImageWrapper from "./ImageWrapper.astro";
+
+interface Props {
+	id?: string;
+	src: string;
+	class?: string;
+	alt?: string;
+	position?: string;
+	basePath?: string;
+	fit?: "cover" | "contain";
+	fullScreen?: boolean;
+}
+
+const {
+	id,
+	src,
+	alt,
+	position = "center",
+	basePath = "/",
+	fit = "cover",
+	fullScreen = false,
+} = Astro.props;
+const className = Astro.props.class;
+
+function getVideoType(source: string) {
+	const pathname = source.split(/[?#]/, 1)[0].toLowerCase();
+	if (pathname.endsWith(".mp4")) return "video/mp4";
+	if (pathname.endsWith(".webm")) return "video/webm";
+	if (pathname.endsWith(".ogg") || pathname.endsWith(".ogv")) {
+		return "video/ogg";
+	}
+	return undefined;
+}
+
+const videoType = getVideoType(src);
+const isVideo = videoType !== undefined;
+const isPublic = src.startsWith("/");
+const isRemote = src.startsWith("http://") || src.startsWith("https://");
+let resolvedVideoSrc: string | undefined;
+
+if (isVideo) {
+	if (isPublic) {
+		resolvedVideoSrc = url(src);
+	} else if (isRemote) {
+		resolvedVideoSrc = src;
+	} else {
+		const files = import.meta.glob<string>("../../**/*.{mp4,webm,ogg,ogv}", {
+			query: "?url",
+			import: "default",
+		});
+		const normalizedPath = path
+			.normalize(path.join("../../", basePath, src))
+			.replace(/\\/g, "/");
+		const file = files[normalizedPath];
+		if (file) {
+			resolvedVideoSrc = await file();
+		} else {
+			console.error(
+				`\n[ERROR] Banner video not found: ${normalizedPath.replace("../../", "src/")}`,
+			);
+		}
+	}
+}
+---
+
+{isVideo ? (
+	<div
+		id={id}
+		class:list={[className, "overflow-hidden relative"]}
+		style={fullScreen
+			? "height: 100%; transform: none; background-color: var(--page-bg);"
+			: undefined}
+	>
+		<div class="transition absolute inset-0 dark:bg-black/10 bg-opacity-50 pointer-events-none z-10"></div>
+		{resolvedVideoSrc && (
+			<video
+				data-banner-video
+				class:list={[
+					"w-full h-full pointer-events-none",
+					fit === "contain" ? "object-contain" : "object-cover",
+				]}
+				style={`object-position: ${position}`}
+				autoplay
+				muted
+				loop
+				playsinline
+				preload="metadata"
+				aria-hidden="true"
+			>
+				<source src={resolvedVideoSrc} type={videoType} />
+			</video>
+		)}
+	</div>
+) : (
+	<ImageWrapper
+		id={id}
+		src={src}
+		alt={alt}
+		position={position}
+		basePath={basePath}
+		class={className}
+	/>
+)}
+
+<script>
+	function setupBannerVideoPlayback() {
+		const video = document.querySelector<HTMLVideoElement>("[data-banner-video]");
+		if (!video || video.dataset.playbackManaged === "true") return;
+
+		video.dataset.playbackManaged = "true";
+		const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+		let isVisible = true;
+
+		const syncPlayback = () => {
+			if (isVisible && !document.hidden && !reduceMotion.matches) {
+				void video.play().catch(() => {});
+			} else {
+				video.pause();
+			}
+		};
+
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				isVisible = entry?.isIntersecting ?? false;
+				syncPlayback();
+			},
+			{ threshold: 0.01 },
+		);
+
+		observer.observe(video);
+		document.addEventListener("visibilitychange", syncPlayback);
+		reduceMotion.addEventListener("change", syncPlayback);
+		video.addEventListener("canplay", syncPlayback, { once: true });
+		syncPlayback();
+	}
+
+	setupBannerVideoPlayback();
+</script>

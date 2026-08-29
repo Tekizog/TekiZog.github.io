@@ -5,7 +5,7 @@ import Navbar from "@components/Navbar.astro";
 import SideBar from "@components/widget/SideBar.astro";
 import type { MarkdownHeading } from "astro";
 import { Icon } from "astro-icon/components";
-import ImageWrapper from "../components/misc/ImageWrapper.astro";
+import BannerMedia from "../components/misc/BannerMedia.astro";
 import TOC from "../components/widget/TOC.astro";
 import { siteConfig } from "../config";
 import {
@@ -35,6 +35,12 @@ const {
 const hasBannerCredit =
 	siteConfig.banner.enable && siteConfig.banner.credit.enable;
 const hasBannerLink = !!siteConfig.banner.credit.url;
+const isVideoBanner = /\.(mp4|webm|ogg|ogv)(?:[?#].*)?$/i.test(
+	siteConfig.banner.src,
+);
+const bannerWrapperStyle = isVideoBanner
+	? "position: fixed; inset: 0; width: 100%; height: 100vh; transform: none; background-color: var(--page-bg);"
+	: `top: -${BANNER_HEIGHT_EXTEND}vh`;
 
 const mainPanelTop = siteConfig.banner.enable
 	? `calc(${BANNER_HEIGHT}vh - ${MAIN_PANEL_OVERLAPS_BANNER_HEIGHT}rem)`
@@ -52,11 +58,11 @@ const mainPanelTop = siteConfig.banner.enable
 </div>
 
 <!-- Banner -->
-{siteConfig.banner.enable && <div id="banner-wrapper" class={`absolute z-10 w-full transition duration-700 overflow-hidden`} style={`top: -${BANNER_HEIGHT_EXTEND}vh`}>
-    <ImageWrapper id="banner" alt="Banner image of the blog" class:list={["object-cover h-full transition duration-700 opacity-0 scale-105"]}
-                  src={siteConfig.banner.src} position={siteConfig.banner.position}
+{siteConfig.banner.enable && <div id="banner-wrapper" class="z-10 w-full transition duration-700 overflow-hidden" class:list={[{"absolute": !isVideoBanner}]} style={bannerWrapperStyle}>
+    <BannerMedia id="banner" alt="Banner image of the blog" class:list={["h-full transition duration-700 opacity-0", {"scale-105": !isVideoBanner}]}
+                  src={siteConfig.banner.src} position={siteConfig.banner.position} fit="cover" fullScreen={isVideoBanner}
     >
-    </ImageWrapper>
+    </BannerMedia>
 </div>}
 
 <!-- Main content -->
