@@ -1,18 +1,12 @@
 ---
 import BackToTop from "@components/control/BackToTop.astro";
 import Footer from "@components/Footer.astro";
-import Navbar from "@components/Navbar.astro";
 import SideBar from "@components/widget/SideBar.astro";
 import type { MarkdownHeading } from "astro";
 import { Icon } from "astro-icon/components";
-import BannerMedia from "../components/misc/BannerMedia.astro";
 import TOC from "../components/widget/TOC.astro";
 import { siteConfig } from "../config";
-import {
-	BANNER_HEIGHT,
-	BANNER_HEIGHT_EXTEND,
-	MAIN_PANEL_OVERLAPS_BANNER_HEIGHT,
-} from "../constants/constants";
+import { MAIN_PANEL_TOP } from "../constants/constants";
 import Layout from "./Layout.astro";
 
 interface Props {
@@ -35,35 +29,15 @@ const {
 const hasBannerCredit =
 	siteConfig.banner.enable && siteConfig.banner.credit.enable;
 const hasBannerLink = !!siteConfig.banner.credit.url;
-const isVideoBanner = /\.(mp4|webm|ogg|ogv)(?:[?#].*)?$/i.test(
-	siteConfig.banner.src,
-);
-const bannerWrapperStyle = isVideoBanner
-	? "position: fixed; inset: 0; width: 100%; height: 100vh; transform: none; background-color: var(--page-bg);"
-	: `top: -${BANNER_HEIGHT_EXTEND}vh`;
-
-const mainPanelTop = siteConfig.banner.enable
-	? `calc(${BANNER_HEIGHT}vh - ${MAIN_PANEL_OVERLAPS_BANNER_HEIGHT}rem)`
-	: "5.5rem";
+const mainPanelTop = `${MAIN_PANEL_TOP}rem`;
 ---
 
 <Layout title={title} banner={banner} description={description} lang={lang} setOGTypeArticle={setOGTypeArticle}>
 
-<!-- Navbar -->
 <slot slot="head" name="head"></slot>
-<div id="top-row" class="z-50 pointer-events-none relative transition-all duration-700 max-w-[var(--page-width)] px-0 md:px-4 mx-auto" class:list={[""]}>
-    <div id="navbar-wrapper" class="pointer-events-auto sticky top-0 transition-all">
-        <Navbar></Navbar>
-    </div>
-</div>
 
-<!-- Banner -->
-{siteConfig.banner.enable && <div id="banner-wrapper" class="z-10 w-full transition duration-700 overflow-hidden" class:list={[{"absolute": !isVideoBanner}]} style={bannerWrapperStyle}>
-    <BannerMedia id="banner" alt="Banner image of the blog" class:list={["h-full transition duration-700 opacity-0", {"scale-105": !isVideoBanner}]}
-                  src={siteConfig.banner.src} position={siteConfig.banner.position} fit="cover" fullScreen={isVideoBanner}
-    >
-    </BannerMedia>
-</div>}
+<div id="page-shell" class="transition-swup-fade">
+<h1 class="sr-only">{title || siteConfig.title}</h1>
 
 <!-- Main content -->
 <div class="absolute w-full z-30 pointer-events-none" style={`top: ${mainPanelTop}`}>
@@ -88,7 +62,7 @@ const mainPanelTop = siteConfig.banner.enable
 
             <SideBar class="mb-4 row-start-2 row-end-3 col-span-2 lg:row-start-1 lg:row-end-2 lg:col-span-1 lg:max-w-[17.5rem] onload-animation" headings={headings}></SideBar>
 
-            <main id="swup-container" class="transition-swup-fade col-span-2 lg:col-span-1 overflow-hidden">
+            <main id="swup-container" class="col-span-2 lg:col-span-1 overflow-hidden">
                 <div id="content-wrapper" class="onload-animation">
                     <!-- the overflow-hidden here prevent long text break the layout-->
                     <!-- make id different from windows.swup global property -->
@@ -116,7 +90,7 @@ const mainPanelTop = siteConfig.banner.enable
             {"toc-hide": siteConfig.banner.enable}]}
         >
             <div id="toc-inner-wrapper" class="fixed top-14 w-[var(--toc-width)] h-[calc(100vh_-_20rem)] overflow-y-scroll overflow-x-hidden hide-scrollbar">
-                <div id="toc" class="w-full h-full transition-swup-fade ">
+                <div id="toc" class="w-full h-full">
                     <div class="h-8 w-full"></div>
                     <TOC headings={headings}></TOC>
                     <div class="h-8 w-full"></div>
@@ -127,5 +101,6 @@ const mainPanelTop = siteConfig.banner.enable
         <!-- #toc needs to exist for Swup to work normally -->
         {!siteConfig.toc.enable && <div id="toc"></div>}
     </div>
+</div>
 </div>
 </Layout>

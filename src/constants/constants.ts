@@ -10,8 +10,8 @@ export const BANNER_HEIGHT = 35;
 export const BANNER_HEIGHT_EXTEND = 30;
 export const BANNER_HEIGHT_HOME = BANNER_HEIGHT + BANNER_HEIGHT_EXTEND;
 
-// The height the main panel overlaps the banner, unit: rem
-export const MAIN_PANEL_OVERLAPS_BANNER_HEIGHT = 3.5;
+// Main content starts below the 4rem navbar and its 0.75rem top inset, unit: rem
+export const MAIN_PANEL_TOP = 5.5;
 
 // Page width: rem
 export const PAGE_WIDTH = 75;

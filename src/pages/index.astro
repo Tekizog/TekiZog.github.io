@@ -1,0 +1,60 @@
+---
+import Layout from "@layouts/Layout.astro";
+import { siteConfig } from "@/config";
+---
+
+<Layout description={siteConfig.subtitle}>
+    <div id="page-shell" class="transition-swup-fade">
+        <main id="swup-container" class="relative z-20">
+            <section id="home-hero" class="flex min-h-[100svh] items-center justify-center px-5 pt-24 pb-10">
+                <h1 class="sr-only">{siteConfig.title}</h1>
+                <p class="home-quote select-none" role="note">风经过樱花，也经过每一个认真生活的日子。</p>
+            </section>
+        </main>
+
+        <div id="toc"></div>
+    </div>
+</Layout>
+
+<style is:global>
+body.is-home {
+    overflow: hidden;
+    background: #0b1220;
+}
+
+body.is-home #page-height-extend {
+    display: none;
+}
+
+body.is-home #top-row {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: auto !important;
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+}
+
+body.is-home #banner-wrapper,
+body.is-home #banner {
+    height: 100svh !important;
+    transform: none !important;
+}
+
+body.is-home #banner-wrapper {
+    position: fixed !important;
+    inset: 0 !important;
+}
+
+.home-quote {
+    width: min(44rem, 100%);
+    margin: 0;
+    color: white;
+    text-align: center;
+    text-shadow: 0 2px 3px rgba(0, 0, 0, 0.9), 0 6px 18px rgba(0, 0, 0, 0.55);
+    font-size: clamp(1.15rem, 2.1vw, 1.6rem);
+    font-weight: 500;
+    line-height: 1.7;
+}
+
+</style>

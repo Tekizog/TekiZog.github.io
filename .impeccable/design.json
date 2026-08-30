@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-30T17:15:00+08:00",
+  "title": "Design System: Tekizog no Koya",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Petal Accent",
+        "canonical": "oklch(0.70 0.14 var(--hue))",
+        "tonalRamp": ["oklch(0.20 0.05 var(--hue))", "oklch(0.30 0.07 var(--hue))", "oklch(0.40 0.09 var(--hue))", "oklch(0.50 0.11 var(--hue))", "oklch(0.60 0.13 var(--hue))", "oklch(0.70 0.14 var(--hue))", "oklch(0.82 0.10 var(--hue))", "oklch(0.94 0.04 var(--hue))"]
+      },
+      "navigation-glass": {
+        "role": "neutral",
+        "displayName": "Media Glass",
+        "canonical": "rgba(18, 29, 50, 0.36)",
+        "tonalRamp": ["#08101d", "#101a2b", "#1b2940", "#2a3b55", "#455a74", "#6c8097", "#aab6c4", "#eef2f6"]
+      },
+      "shadow-strong": {
+        "role": "neutral",
+        "displayName": "Strong Text Protection",
+        "canonical": "rgba(0, 0, 0, 0.80)",
+        "tonalRamp": ["#000000", "#171717", "#303030", "#4a4a4a", "#666666", "#858585", "#b5b5b5", "#eeeeee"]
+      },
+      "shadow-medium": {
+        "role": "neutral",
+        "displayName": "Diffuse Text Protection",
+        "canonical": "rgba(0, 0, 0, 0.45)",
+        "tonalRamp": ["#000000", "#171717", "#303030", "#4a4a4a", "#666666", "#858585", "#b5b5b5", "#eeeeee"]
+      },
+      "quote-shadow": {
+        "role": "neutral",
+        "displayName": "Quote Lift",
+        "canonical": "rgba(2, 8, 20, 0.18)",
+        "tonalRamp": ["#020814", "#111927", "#263142", "#3e4b5e", "#5f6d7f", "#8793a2", "#bac2cb", "#f0f3f6"]
+      }
+    },
+    "typographyMeta": {
+      "body": {
+        "displayName": "Reading Body",
+        "purpose": "Navigation, article summaries, and long-form reading."
+      },
+      "home-quote": {
+        "displayName": "Home Quote",
+        "purpose": "One short literary sentence over the full-screen media."
+      },
+      "label": {
+        "displayName": "Compact Label",
+        "purpose": "Navigation metadata and compact interface labels."
+      },
+      "icon-sm": {
+        "displayName": "Small Icon",
+        "purpose": "External-link and compact metadata symbols."
+      },
+      "icon-md": {
+        "displayName": "Medium Icon",
+        "purpose": "Standard navigation utility controls."
+      },
+      "icon-lg": {
+        "displayName": "Large Icon",
+        "purpose": "Brand and prominent directional symbols."
+      }
+    },
+    "shadows": [
+      {
+        "name": "glass-lift",
+        "value": "0 12px 32px rgba(4, 10, 22, 0.20)",
+        "purpose": "Separate home navigation from moving media without making it opaque."
+      },
+      {
+        "name": "media-text-protection",
+        "value": "0 1px 2px rgba(0,0,0,0.85), 0 0 12px rgba(0,0,0,0.55)",
+        "purpose": "Keep white labels legible over petals and sky."
+      }
+    ],
+    "motion": [
+      {
+        "name": "page-shell-crossfade",
+        "value": "200ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Preserve navigation and background continuity while route content changes."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Site Glass Navigation",
+      "kind": "nav",
+      "refersTo": "site-glass-nav",
+      "description": "Compact navigation shared by every route and protected against bright media.",
+      "html": "<nav class=\"ds-home-nav\"><a href=\"/\">Home</a><a href=\"/articles/\">Articles</a><a href=\"/archive/\">Archive</a></nav>",
+      "css": ".ds-home-nav{display:flex;align-items:center;gap:8px;height:64px;padding:0 16px;background:rgba(18,29,50,.36);color:rgba(255,255,255,.96);border:1px solid rgba(255,255,255,.22);border-radius:8px;box-shadow:0 12px 32px rgba(4,10,22,.22)}.ds-home-nav a{color:inherit;text-decoration:none;font:700 16px Roboto,sans-serif;padding:12px 16px;border-radius:8px;text-shadow:0 1px 2px rgba(0,0,0,.85),0 0 12px rgba(0,0,0,.55);transition:background .2s}.ds-home-nav a:hover,.ds-home-nav a:focus-visible{background:rgba(255,255,255,.16);outline:2px solid rgba(255,255,255,.8);outline-offset:2px}"
+    },
+    {
+      "name": "Home Quote",
+      "kind": "custom",
+      "refersTo": "home-quote",
+      "description": "The single literary sentence on a translucent deep surface without backdrop blur.",
+      "html": "<p class=\"ds-home-quote\">风经过樱花，也经过每一个认真生活的日子。</p>",
+      "css": ".ds-home-quote{max-width:608px;margin:0;padding:16px 22px;color:#fff;background:rgba(18,29,50,.20);border:1px solid rgba(255,255,255,.16);border-radius:8px;box-shadow:0 12px 34px rgba(2,8,20,.18);font:500 clamp(16.1px,2.1vw,25.6px)/1.7 Roboto,sans-serif;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.8),0 0 10px rgba(0,0,0,.45)}"
+    },
+    {
+      "name": "Article Card",
+      "kind": "card",
+      "refersTo": "article-card",
+      "description": "Opaque scan-friendly container for article summaries.",
+      "html": "<article class=\"ds-article-card\"><h2>Article title</h2><p>Article summary</p></article>",
+      "css": ".ds-article-card{padding:24px;background:#fff;color:rgba(0,0,0,.9);border-radius:16px;overflow:hidden}.ds-article-card h2{margin:0 0 12px;font:700 28px/1.3 Roboto,sans-serif}.ds-article-card p{margin:0;font:400 16px/1.5 Roboto,sans-serif;color:rgba(0,0,0,.65)}.ds-article-card:focus-within{outline:2px solid oklch(.70 .14 330);outline-offset:3px}"
+    },
+    {
+      "name": "Ghost Icon Button",
+      "kind": "button",
+      "description": "Square utility control used for search, theme, settings, and menus.",
+      "html": "<button class=\"ds-icon-button\" aria-label=\"Search\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/></svg></button>",
+      "css": ".ds-icon-button{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;border:0;border-radius:8px;background:transparent;color:currentColor;transition:background .2s,transform .2s}.ds-icon-button svg{width:20px;height:20px}.ds-icon-button:hover,.ds-icon-button:focus-visible{background:rgba(255,255,255,.16);outline:2px solid currentColor;outline-offset:2px}.ds-icon-button:active{transform:scale(.9)}"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "description": "Compact navigation search that preserves its dimensions on focus.",
+      "html": "<label class=\"ds-search\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/></svg><input placeholder=\"Search\"></label>",
+      "css": ".ds-search{display:flex;align-items:center;width:208px;height:44px;padding:0 12px;gap:8px;border-radius:8px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.96);transition:background .2s}.ds-search:focus-within{background:rgba(255,255,255,.18);outline:2px solid rgba(255,255,255,.85);outline-offset:2px}.ds-search svg{width:20px;height:20px}.ds-search input{min-width:0;width:100%;border:0;outline:0;background:transparent;color:inherit;font:400 14px Roboto,sans-serif}.ds-search input::placeholder{color:rgba(255,255,255,.88)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Cherry-Glass Threshold",
+    "overview": "The home route is an immersive viewing surface for authored cherry-blossom media. Every route shares one glass navigation language, while reading content remains on opaque cards with the profile sidebar and compact metadata.",
+    "keyCharacteristics": [
+      "Full-bleed authored media on home",
+      "Shared glass navigation",
+      "Translucent no-blur home quote surface",
+      "Opaque content-first reading cards",
+      "Reading content aligned directly below navigation",
+      "Configurable pink-blue accent hue",
+      "Quiet route-content crossfade"
+    ],
+    "rules": [
+      { "name": "The Two-Surface Rule", "body": "Navigation may use atmospheric glass on every route; reading-content surfaces remain opaque.", "section": "colors" },
+      { "name": "The One-Sentence Rule", "body": "The home glass panel contains one literary sentence and no feature or CTA stack.", "section": "typography" },
+      { "name": "The Protected Transparency Rule", "body": "Transparency may reveal media but never erase labels, placeholders, or icons.", "section": "elevation" },
+      { "name": "The Immediate Reading Rule", "body": "Reading content starts 0.75rem below navigation and never uses viewport-height banner spacing.", "section": "layout" }
+    ],
+    "dos": [
+      "Do keep the animated background as the dominant home-page signal.",
+      "Do preserve the article cards, sidebar, metadata, and responsive order."
+    ],
+    "donts": [
+      "Don't place article lists or profile panels on the home route.",
+      "Don't use atmospheric glass for reading-content containers."
+    ]
+  }
+}
