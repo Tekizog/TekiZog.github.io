@@ -3,9 +3,9 @@ title: "[CNSS2026 web] babyshell"
 published: 2026-08-27
 description: ''
 image: ''
-tags: [CTF, CNSS]
-category: 'CTF'
-draft: false 
+tags: ["CTF", "CNSS"]
+category: CTF
+draft: false
 lang: ''
 ---
 这题打开给的靶机后是一个终端界面：
@@ -22,7 +22,7 @@ clear - 清空屏幕
 
 然后输入 **ls** 来查看当前目录的文件，发现有两个文件：
 ![image2](./image2.png)
-其中有一个写着fakeflag的文本，显然它是一个假的flag，但是有提示，用 **cat fakeflag.txt** 打开 **fakeflag.txt** 后给了我们一个提示：
+其中有一个写着fakeflag的文本，显然它是一个假的flag，但是有提示，用 **cat fakeflag.txt** 打开**fakeflag.txt** 后给了我们一个提示：
 ![image](./image3.png)
 让我们注意HTML的注释。所以我们可以右键鼠标点击检查或者按f12，在elements里看到了一段base64：
 ![image](./image4.png)
