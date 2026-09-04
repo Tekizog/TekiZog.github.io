@@ -6,6 +6,8 @@ import ImageWrapper from "./ImageWrapper.astro";
 interface Props {
 	id?: string;
 	src: string;
+	mobileSrc?: string;
+	poster?: string;
 	class?: string;
 	alt?: string;
 	position?: string;
@@ -17,6 +19,8 @@ interface Props {
 const {
 	id,
 	src,
+	mobileSrc,
+	poster,
 	alt,
 	position = "center",
 	basePath = "/",
@@ -40,6 +44,10 @@ const isVideo = videoType !== undefined;
 const isPublic = src.startsWith("/");
 const isRemote = src.startsWith("http://") || src.startsWith("https://");
 let resolvedVideoSrc: string | undefined;
+const resolvedMobileSrc = mobileSrc?.startsWith("/")
+	? url(mobileSrc)
+	: mobileSrc;
+const resolvedPosterSrc = poster?.startsWith("/") ? url(poster) : poster;
 
 if (isVideo) {
 	if (isPublic) {
@@ -75,11 +83,35 @@ if (isVideo) {
 			: undefined}
 	>
 		<div class="transition-colors duration-300 absolute inset-0 bg-transparent dark:bg-black/40 pointer-events-none z-10"></div>
+		{resolvedMobileSrc && (
+			<picture class="block w-full h-full md:hidden">
+				<source
+					media="(max-width: 767px)"
+					srcset={resolvedMobileSrc}
+				/>
+				<img
+					class:list={[
+						"w-full h-full pointer-events-none",
+						fit === "contain" ? "object-contain" : "object-cover",
+					]}
+					style={`object-position: ${position}`}
+					src={resolvedPosterSrc ?? resolvedMobileSrc}
+					alt=""
+					aria-hidden="true"
+					draggable="false"
+					decoding="async"
+					fetchpriority="high"
+				/>
+			</picture>
+		)}
 		{resolvedVideoSrc && (
 			<video
 				data-banner-video
+				data-banner-video-src={resolvedMobileSrc ? resolvedVideoSrc : undefined}
+				data-banner-video-type={resolvedMobileSrc ? videoType : undefined}
 				class:list={[
 					"w-full h-full pointer-events-none",
+					resolvedMobileSrc && "hidden md:block",
 					fit === "contain" ? "object-contain" : "object-cover",
 				]}
 				style={`object-position: ${position}`}
@@ -87,10 +119,11 @@ if (isVideo) {
 				muted
 				loop
 				playsinline
-				preload="auto"
+				poster={resolvedPosterSrc}
+				preload={resolvedMobileSrc ? "none" : "auto"}
 				aria-hidden="true"
 			>
-				<source src={resolvedVideoSrc} type={videoType} />
+				{!resolvedMobileSrc && <source src={resolvedVideoSrc} type={videoType} />}
 			</video>
 		)}
 	</div>
@@ -112,9 +145,39 @@ if (isVideo) {
 
 		video.dataset.playbackManaged = "true";
 		const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+		const desktopMedia = window.matchMedia("(min-width: 768px)");
+		const deferredSrc = video.dataset.bannerVideoSrc;
+		let source = video.querySelector<HTMLSourceElement>("source");
 		let isVisible = true;
 
+		const ensureSource = () => {
+			if (!deferredSrc || source) return;
+
+			source = document.createElement("source");
+			source.src = deferredSrc;
+			if (video.dataset.bannerVideoType) {
+				source.type = video.dataset.bannerVideoType;
+			}
+			video.append(source);
+			video.load();
+		};
+
+		const releaseSource = () => {
+			if (!deferredSrc || !source) return;
+
+			video.pause();
+			source.remove();
+			source = null;
+			video.load();
+		};
+
 		const syncPlayback = () => {
+			if (deferredSrc && !desktopMedia.matches) {
+				releaseSource();
+				return;
+			}
+
+			ensureSource();
 			if (isVisible && !document.hidden && !reduceMotion.matches) {
 				void video.play().catch(() => {});
 			} else {
@@ -133,6 +196,7 @@ if (isVideo) {
 		observer.observe(video);
 		document.addEventListener("visibilitychange", syncPlayback);
 		reduceMotion.addEventListener("change", syncPlayback);
+		desktopMedia.addEventListener("change", syncPlayback);
 		video.addEventListener("canplay", syncPlayback, { once: true });
 		syncPlayback();
 	}

@@ -1,3 +1,5 @@
+import sakuraStreetFirstFrame from "./assets/images/sakura-street-first-frame.webp?url";
+import sakuraStreetMobile from "./assets/images/sakura-street-mobile.png?url";
 import type {
 	ExpressiveCodeConfig,
 	LicenseConfig,
@@ -18,6 +20,8 @@ export const siteConfig: SiteConfig = {
 	banner: {
 		enable: true,
 		src: "assets/videos/日漫的樱花街道.mp4", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
+		mobileSrc: sakuraStreetMobile,
+		poster: sakuraStreetFirstFrame,
 		position: "center", // Equivalent to object-position, only supports 'top', 'center', 'bottom'. 'center' by default
 		credit: {
 			enable: false, // Display the credit text of the banner image
