@@ -5,7 +5,7 @@ updated: 2026-09-04T20:13:00+08:00
 description: ''
 image: ''
 tags: ["CTF", "CNSS"]
-category: CTF
+category: 'CNSS2026 writeup'
 draft: false
 lang: ''
 ---
