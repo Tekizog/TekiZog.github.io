@@ -19,7 +19,7 @@ export const siteConfig: SiteConfig = {
 	},
 	banner: {
 		enable: true,
-		src: "assets/videos/日漫的樱花街道.mp4", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
+		src: "assets/videos/bg-hd.mp4", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
 		mobileSrc: sakuraStreetMobile,
 		poster: sakuraStreetFirstFrame,
 		position: "center", // Equivalent to object-position, only supports 'top', 'center', 'bottom'. 'center' by default
