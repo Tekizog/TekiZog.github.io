@@ -128,11 +128,9 @@
     var noVideo = reduced || conn.saveData || /^(slow-2g|2g)$/.test(conn.effectiveType || "");
     if (noVideo || window.innerWidth < 768) return;
 
-    /* 高清版 4.6MB、标准版 1.5MB。只有 1600 以上的大屏才值得多花这 3MB——
-       1366/1440 的笔记本用标准版看不出差别（背景还盖着一层暗色遮罩和粒子） */
+    /* 4G / WiFi 一律高清版（画质不降）；只有明确是 3G 才退回标准版 */
     var hd = C.video.hd, sd = C.video.sd || hd;
-    var bigScreen = window.innerWidth >= 1600;
-    var src = hd && bigScreen && (!conn.effectiveType || conn.effectiveType === "4g") ? hd : sd;
+    var src = hd && (!conn.effectiveType || conn.effectiveType === "4g") ? hd : sd;
 
     var tryPlay = function () {
       if (document.hidden) return;
