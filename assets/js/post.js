@@ -77,6 +77,51 @@
     });
   }
 
+  /* ---------- 图片灯箱：点正文里的图，铺满全屏看 ----------
+     事件委托挂在正文容器上，重新渲染（本地预览轮询）后不用重新绑定 */
+  function initLightbox(host) {
+    var box = document.createElement("div");
+    box.className = "lightbox";
+    box.setAttribute("role", "dialog");
+    box.setAttribute("aria-modal", "true");
+    box.setAttribute("aria-label", "图片预览");
+    box.innerHTML = '<img alt=""><button class="lightbox-close" type="button" aria-label="关闭预览">✕</button>';
+    document.body.appendChild(box);
+
+    var pic = box.querySelector("img");
+    var lastFocus = null;
+
+    function open(img) {
+      /* 优先用实际加载的地址（可能是 .webp 副本） */
+      pic.src = img.currentSrc || img.src;
+      pic.alt = img.alt || "";
+      lastFocus = document.activeElement;
+      box.classList.add("is-open");
+      document.documentElement.classList.add("lightbox-open");
+      box.querySelector(".lightbox-close").focus({ preventScroll: true });
+    }
+    function close() {
+      if (!box.classList.contains("is-open")) return;
+      box.classList.remove("is-open");
+      document.documentElement.classList.remove("lightbox-open");
+      if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+    }
+
+    host.addEventListener("click", function (e) {
+      var img = e.target.closest("img");
+      if (!img || !host.contains(img)) return;
+      /* 图片可能包在链接里：先拦住跳转 */
+      e.preventDefault();
+      e.stopPropagation();
+      open(img);
+    });
+    /* 点遮罩、点图片、点关闭按钮都能关 */
+    box.addEventListener("click", close);
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") close();
+    });
+  }
+
   /* 渲染后的增强处理：标题 id、图片懒加载、外链、表格滚动 */
   function enhance(el) {
     var headings = [];
@@ -233,6 +278,8 @@
   function init() {
     initProgress();
     showTocGhost(); // 第一帧就挂上目录骨架，目录区域随页面一起出现
+    var postBodyEl = $("#postBody");
+    if (postBodyEl) initLightbox(postBodyEl);
     var copyBtn = $("#copyLink");
     if (copyBtn) copyBtn.addEventListener("click", function () {
       var url = location.href;

@@ -1573,6 +1573,56 @@ html[data-theme="night"] .avatar { background: linear-gradient(135deg, var(--pin
 }
 .about-text p { color: var(--ink-2); font-size: 0.98rem; }
 
+/* ---------- 图片灯箱 ---------- */
+/* 正文里的图默认显示放大镜光标，点一下铺满全屏 */
+.article-body img { cursor: zoom-in; }
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3vmin;
+  background: rgba(10, 8, 18, 0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.lightbox.is-open { opacity: 1; pointer-events: auto; }
+.lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 12px;
+  box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.9);
+  cursor: zoom-out;
+  transform: scale(0.96);
+  transition: transform 0.2s var(--ease);
+}
+.lightbox.is-open img { transform: scale(1); }
+.lightbox-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+.lightbox-close:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.4); }
+/* 灯箱打开时锁住页面滚动 */
+html.lightbox-open { overflow: hidden; }
+
 /* ---------- 页脚 ---------- */
 .footer {
   /* 顶部留白原本 90 + 170，滚到底时会露出一大块空白；
