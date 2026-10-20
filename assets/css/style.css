@@ -648,10 +648,11 @@ html[data-theme="night"] .hero-title.is-split { filter: drop-shadow(0 0 26px rgb
 .section {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 96px 24px 20px;
+  /* 顶部原本 96px，导航只有 64px 高，标题压得偏低；收 16px 更贴合 */
+  padding: 76px 24px 20px;
 }
 
-.section-head { text-align: center; margin-bottom: 40px; position: relative; }
+.section-head { text-align: center; margin-bottom: 22px; position: relative; }
 
 .section-jp {
   font-family: var(--font-jp);
@@ -686,7 +687,7 @@ html[data-theme="night"] .hero-title.is-split { filter: drop-shadow(0 0 26px rgb
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  margin-bottom: 30px;
+  margin-bottom: 22px;
 }
 
 /* 手记：工具栏 / 时间条横跨整行，分类栏从卡片那一行才开始（原来和工具栏齐平，显得太高） */
