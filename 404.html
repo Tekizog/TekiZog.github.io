@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 · 樱花街道</title>
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+  <script>
+    /* 跟随用户选过的昼夜主题，别让夜樱用户点进 404 突然看到亮色页面 */
+    try {
+      var __t = localStorage.getItem("sakura-theme");
+      if (!__t && matchMedia("(prefers-color-scheme: dark)").matches) __t = "night";
+      if (__t) document.documentElement.setAttribute("data-theme", __t);
+    } catch (e) {}
+  </script>
+  <style>
+    :root {
+      --bg1: #fff7f9;
+      --bg2: #fdeef3;
+      --ink: #43303e;
+      --ink-2: #7f6a79;
+      --jp: #e85b8a;
+      --veil-1: rgba(255, 247, 250, 0.5);
+      --veil-2: rgba(253, 238, 243, 0.82);
+    }
+    html[data-theme="night"] {
+      --bg1: #16132a;
+      --bg2: #1d1836;
+      --ink: #f3ecf5;
+      --ink-2: #b3a3c2;
+      --jp: #ff9dc0;
+      --veil-1: rgba(15, 11, 26, 0.55);
+      --veil-2: rgba(22, 19, 42, 0.86);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, var(--bg1), var(--bg2));
+      color: var(--ink);
+      overflow: hidden;
+      text-align: center;
+    }
+    /* 夜樱下把白天的视频压暗，和首页保持一致 */
+    html[data-theme="night"] video { filter: brightness(0.44) saturate(0.62) hue-rotate(-14deg); }
+    .code {
+      font-size: clamp(6rem, 24vw, 11rem);
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      background: linear-gradient(135deg, #f2719c, #7f9bff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      line-height: 1;
+    }
+    .jp { letter-spacing: 0.5em; text-indent: 0.5em; color: var(--jp); margin: 10px 0 6px; font-weight: 700; }
+    p { color: var(--ink-2); margin: 8px 0 28px; }
+    a {
+      display: inline-block;
+      padding: 12px 34px;
+      border-radius: 99px;
+      background: linear-gradient(135deg, #f2719c, #e85b8a);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      box-shadow: 0 18px 40px -18px rgba(232, 91, 138, 0.6);
+      transition: transform 0.3s;
+    }
+    a:hover { transform: translateY(-3px); }
+    .petal {
+      position: fixed;
+      top: -40px;
+      font-size: 22px;
+      animation: fall linear infinite;
+      opacity: 0.8;
+    }
+    body.is-hidden .petal { animation-play-state: paused; }
+    @keyframes fall {
+      to { transform: translateY(110vh) rotate(540deg); }
+    }
+  </style>
+</head>
+<body>
+  <!-- 固定动态背景 -->
+  <video autoplay muted loop playsinline
+         style="position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;"
+         src="assets/video/bg.mp4"></video>
+  <div style="position:fixed;inset:0;z-index:-1;background:linear-gradient(180deg,var(--veil-1),var(--veil-2));"></div>
+  <div>
+    <div class="code">404</div>
+    <p class="jp">迷子になった…</p>
+    <p>这一页被风吹走了，回樱花街道看看吧。</p>
+    <a href="index.html">❀ 回到首页</a>
+  </div>
+  <script>
+    const fragment = document.createDocumentFragment();
+    for (let i = 0; i < 14; i++) {
+      const s = document.createElement("span");
+      s.className = "petal";
+      s.textContent = "🌸";
+      s.style.left = Math.random() * 100 + "vw";
+      s.style.animationDuration = 6 + Math.random() * 7 + "s";
+      s.style.animationDelay = -Math.random() * 10 + "s";
+      s.style.fontSize = 14 + Math.random() * 16 + "px";
+      fragment.appendChild(s);
+    }
+    document.body.appendChild(fragment);
+    const video = document.querySelector("video");
+    let resumeVideo = document.hidden && video.autoplay;
+    function syncVisibility() {
+      document.body.classList.toggle("is-hidden", document.hidden);
+      if (document.hidden) {
+        resumeVideo = resumeVideo || !video.paused;
+        video.pause();
+      } else if (resumeVideo) {
+        resumeVideo = false;
+        video.play().catch(function () {});
+      }
+    }
+    video.addEventListener("play", function () {
+      if (document.hidden) syncVisibility();
+    });
+    document.addEventListener("visibilitychange", syncVisibility);
+    syncVisibility();
+  </script>
+</body>
+</html>

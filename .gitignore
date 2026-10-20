@@ -1,0 +1,17 @@
+# 原始视频太大（94MB），不需要提交到仓库，压缩版已在 assets/video 里
+日漫的樱花街道.mp4
+*.mp4.orig
+
+# 构建产物（GitHub Actions 会自动生成）
+dist/
+
+# 系统杂项
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+
+# 本地工具 / 编辑器产生的目录，不进仓库
+.workbuddy-ai/
+.workbuddy/
+.yingjian-trash/
