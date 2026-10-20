@@ -78,7 +78,12 @@ html[data-theme="night"] {
 /* 作者样式里的 display 会盖掉 UA 的 [hidden]{display:none}，这里补一刀 */
 [hidden] { display: none !important; }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  /* Android Chrome / 部分国产系统会给可点元素盖一层蓝绿色方块（手机上点哪儿哪儿发蓝）。
+     站内的 :active 缩放、位移已经提供了点击反馈，这里把系统高亮关掉 */
+  -webkit-tap-highlight-color: transparent;
+}
 
 body {
   font-family: var(--font-sans);
