@@ -419,7 +419,15 @@ html[data-theme="night"] .bg-media {
   inset: 0;
   background-size: cover;
   background-position: center;
+  /* 海报直接写进 CSS（原来靠 JS 赋值，要等脚本跑完才开始下载）；
+     WebP 比原 JPEG 小一半，手机再换 720 宽的版本 */
+  background-image: url("../img/poster.webp");
   transform: scale(1.03);
+}
+
+/* 手机换 720 宽的版本：55KB，比桌面版再省 90KB */
+@media (max-width: 720px) {
+  .bg-poster { background-image: url("../img/poster-sm.webp"); }
 }
 
 #bgVideo {

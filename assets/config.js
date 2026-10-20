@@ -27,7 +27,8 @@ window.SAKURA_CONFIG = {
     enabled: true,
     hd:     "assets/video/bg-hd.mp4",   // 1080p 压缩版（4.7MB，仓库里有）
     sd:     "assets/video/bg.mp4",      // 720p 版（1.5MB，慢速网络用）
-    poster: "assets/img/poster.jpg"
+    poster: "assets/img/poster.webp",        // 桌面海报（1280 宽 WebP，144KB）
+    posterSmall: "assets/img/poster-sm.webp", // 手机海报（720 宽，55KB）
   },
 
   /* ---------- 樱花飘落 ---------- */

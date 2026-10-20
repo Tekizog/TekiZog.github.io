@@ -115,8 +115,10 @@
      3G → 标准版(1.5MB)，4G/WiFi → 高清版；页面空闲后才加载，不阻塞首屏 */
   function initVideo() {
     var poster = $(".bg-poster");
-    if (poster && C.video && C.video.poster) {
-      poster.style.backgroundImage = 'url("' + C.video.poster + '")';
+    if (poster && C.video) {
+      /* 手机用 720 宽的版本，省 90KB；CSS 里已有一份默认值兜底 */
+      var pv = C.video.posterSmall && window.innerWidth <= 720 ? C.video.posterSmall : C.video.poster;
+      if (pv) poster.style.backgroundImage = 'url("' + pv + '")';
     }
 
     var v = $("#bgVideo");
@@ -126,8 +128,11 @@
     var noVideo = reduced || conn.saveData || /^(slow-2g|2g)$/.test(conn.effectiveType || "");
     if (noVideo || window.innerWidth < 768) return;
 
+    /* 高清版 4.6MB、标准版 1.5MB。只有 1600 以上的大屏才值得多花这 3MB——
+       1366/1440 的笔记本用标准版看不出差别（背景还盖着一层暗色遮罩和粒子） */
     var hd = C.video.hd, sd = C.video.sd || hd;
-    var src = hd && (!conn.effectiveType || conn.effectiveType === "4g") ? hd : sd;
+    var bigScreen = window.innerWidth >= 1600;
+    var src = hd && bigScreen && (!conn.effectiveType || conn.effectiveType === "4g") ? hd : sd;
 
     var tryPlay = function () {
       if (document.hidden) return;
