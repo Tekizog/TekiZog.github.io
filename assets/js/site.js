@@ -63,6 +63,9 @@
       var x = r.left + r.width / 2, y = r.top + r.height / 2;
       var radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
       root.classList.add("theme-switching");
+      /* 兜底：万一 finished 因为中断没回调，别让"关过渡"的状态一直挂着 */
+      var clearSwitch = function () { root.classList.remove("theme-switching"); };
+      var switchGuard = setTimeout(clearSwitch, 1500);
       var vt = document.startViewTransition(apply);
       vt.ready.then(function () {
         document.documentElement.animate(
@@ -70,7 +73,10 @@
           { duration: 700, easing: "ease-in-out", pseudoElement: "::view-transition-new(root)" }
         );
       }).catch(function () {});
-      vt.finished.catch(function () {}).then(function () { root.classList.remove("theme-switching"); });
+      vt.finished.catch(function () {}).then(function () {
+        clearTimeout(switchGuard);
+        clearSwitch();
+      });
     });
   }
 
@@ -556,6 +562,13 @@
 
     function tick(now) {
       if (document.hidden) { raf = null; return; } // 后台标签页自动暂停，省电
+      /* 切主题的这 700ms 里整页被 ::view-transition 的快照盖住，画面根本看不见。
+         清屏 + 重画整张画布（手机上 1170×2532）纯属白烧，直接跳过，但保持循环不断 */
+      if (root.classList.contains("theme-switching")) {
+        last = now;
+        raf = requestAnimationFrame(tick);
+        return;
+      }
       /* 以 60fps 为 1 的时间步长；切回前台时钳到 3 帧，避免花瓣瞬移 */
       var dt = last ? Math.min((now - last) / 16.667, 3) : 1;
       last = now;
