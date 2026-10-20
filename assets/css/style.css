@@ -1602,6 +1602,33 @@ html[data-theme="night"] .avatar { background: linear-gradient(135deg, var(--pin
   transition: transform 0.2s var(--ease);
 }
 .lightbox.is-open img { transform: scale(1); }
+/* 放大到原始尺寸：容器可滚，图片顶到左上角 */
+.lightbox.is-zoomed { overflow: auto; padding: 0; align-items: flex-start; justify-content: flex-start; }
+.lightbox.is-zoomed img {
+  max-width: none;
+  max-height: none;
+  border-radius: 0;
+  cursor: grab;
+  touch-action: pan-x pan-y;
+}
+.lightbox.is-zoomed img:active { cursor: grabbing; }
+/* 放大后给个提示，免得不知道还能还原 */
+.lightbox-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  padding: 5px 14px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.lightbox.is-zoomed .lightbox-hint { opacity: 1; }
 .lightbox-close {
   position: absolute;
   top: 16px;

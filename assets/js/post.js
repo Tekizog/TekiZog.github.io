@@ -85,24 +85,45 @@
     box.setAttribute("role", "dialog");
     box.setAttribute("aria-modal", "true");
     box.setAttribute("aria-label", "图片预览");
-    box.innerHTML = '<img alt=""><button class="lightbox-close" type="button" aria-label="关闭预览">✕</button>';
+    box.innerHTML =
+      '<img alt="">' +
+      '<button class="lightbox-close" type="button" aria-label="关闭预览">✕</button>' +
+      '<span class="lightbox-hint">再点一下图片还原</span>';
     document.body.appendChild(box);
 
     var pic = box.querySelector("img");
     var lastFocus = null;
+    var dragging = false, startX = 0, startY = 0, startL = 0, startT = 0, moved = false;
+
+    function zoomed() { return box.classList.contains("is-zoomed"); }
+
+    function setZoom(on) {
+      box.classList.toggle("is-zoomed", on);
+      if (on) {
+        /* 放大后先滚到中间，别一上来就贴着左上角 */
+        box.scrollLeft = Math.max(0, (pic.offsetWidth - box.clientWidth) / 2);
+        box.scrollTop = Math.max(0, (pic.offsetHeight - box.clientHeight) / 2);
+      } else {
+        box.scrollLeft = 0;
+        box.scrollTop = 0;
+      }
+    }
 
     function open(img) {
+      lastFocus = document.activeElement;
+      box.classList.remove("is-zoomed");
+      box.classList.add("is-open");
+      document.documentElement.classList.add("lightbox-open");
       /* 优先用实际加载的地址（可能是 .webp 副本） */
       pic.src = img.currentSrc || img.src;
       pic.alt = img.alt || "";
-      lastFocus = document.activeElement;
-      box.classList.add("is-open");
-      document.documentElement.classList.add("lightbox-open");
       box.querySelector(".lightbox-close").focus({ preventScroll: true });
     }
+
     function close() {
       if (!box.classList.contains("is-open")) return;
       box.classList.remove("is-open");
+      box.classList.remove("is-zoomed");
       document.documentElement.classList.remove("lightbox-open");
       if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
     }
@@ -115,11 +136,43 @@
       e.stopPropagation();
       open(img);
     });
-    /* 点遮罩、点图片、点关闭按钮都能关 */
-    box.addEventListener("click", close);
+
+    /* 点图片：能放大的就切换缩放，本来就比屏幕小的直接关掉 */
+    pic.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (moved) { moved = false; return; }   // 拖完松手不算点击
+      if (zoomed()) { setZoom(false); return; }
+      /* 现算：此刻图片一定已经按适配尺寸排好版，naturalWidth 也解码完了 */
+      var canZoom = pic.naturalWidth > pic.clientWidth * 1.2 || pic.naturalHeight > pic.clientHeight * 1.2;
+      if (canZoom) setZoom(true);
+      else close();
+    });
+    /* 点遮罩或关闭按钮 */
+    box.addEventListener("click", function (e) {
+      if (e.target === pic) return;
+      close();
+    });
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") close();
     });
+
+    /* 放大状态下用鼠标拖动平移（触摸靠容器原生滚动，不用额外处理） */
+    pic.addEventListener("pointerdown", function (e) {
+      if (!zoomed() || e.pointerType === "touch") return;
+      dragging = true; moved = false;
+      startX = e.clientX; startY = e.clientY;
+      startL = box.scrollLeft; startT = box.scrollTop;
+      try { pic.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    pic.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var dx = e.clientX - startX, dy = e.clientY - startY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+      box.scrollLeft = startL - dx;
+      box.scrollTop = startT - dy;
+    });
+    pic.addEventListener("pointerup", function () { dragging = false; });
+    pic.addEventListener("pointercancel", function () { dragging = false; });
   }
 
   /* 渲染后的增强处理：标题 id、图片懒加载、外链、表格滚动 */
