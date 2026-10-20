@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-20T23:08:59",
+  "updated": "2026-10-20T23:30:41",
   "posts": [
     {
       "slug": "2026-09-13-写作指南一-元信息-图片与草稿",
@@ -124,5 +124,29 @@
       "excerpt": "",
       "minutes": 1
     }
+  ],
+  "webp": [
+    "posts/CNSS娘的零食大作战/image.webp",
+    "posts/CNSS娘的零食大作战/image1.webp",
+    "posts/babyshell/image1.webp",
+    "posts/babyshell/image2.webp",
+    "posts/babyshell/image3.webp",
+    "posts/babyshell/image4.webp",
+    "posts/cnss2026-web-ping/image-184816.webp",
+    "posts/cnss2026-web-ping/image-184831.webp",
+    "posts/cnss2026-web-ping/image-185144.webp",
+    "posts/cnss2026-web-ping/image-193030.webp",
+    "posts/cnss2026-web-ping/image-193128.webp",
+    "posts/cnss2026-web-ping/image-194323.webp",
+    "posts/cnss2026-web-ping/image-194340.webp",
+    "posts/cnss2026-web-ping/image-195241.webp",
+    "posts/cnss2026-web-ping/image-200454.webp",
+    "posts/cnss2026-web-ping/image.webp",
+    "posts/cnss2026-web-ping/屏幕截图-2026-09-04-192934.webp",
+    "posts/当CNSS娘遇见/image1.webp",
+    "posts/当CNSS娘遇见/image2.webp",
+    "posts/当CNSS娘遇见/image3.webp",
+    "posts/当CNSS娘遇见/image4.webp",
+    "posts/当CNSS娘遇见/image5.webp"
   ]
 }

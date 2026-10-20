@@ -8,6 +8,14 @@
   var C = window.SAKURA_CONFIG || {};
   var localPreview = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
   var contentCache = localPreview ? "no-cache" : "default";
+
+  /* 配图 WebP 清单：build.py 会把 posts 下已生成的 .webp 写进 posts.json。
+     渲染完按清单换源——清单里没有的保持原图，加载失败也回退原图，不会白屏 */
+  var WEBP = null;
+  var webpReady = fetch("posts.json", { cache: contentCache })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) { WEBP = new Set((d && d.webp) || []); })
+    .catch(function () { WEBP = new Set(); });
   var params = new URLSearchParams(location.search);
   /* 文件夹式文章的 slug 形如 文章名/index，允许 /；
      另放行点号、括号、空格（导入文章常见的文件名），但任何一段不能是 ..（防路径穿越） */
@@ -57,6 +65,18 @@
     t.__h = setTimeout(function () { t.classList.remove("show"); }, 2000);
   }
 
+  /* 把配图换成 WebP 副本：清单里没有的保持原图，加载失败也回退原图 */
+  function swapWebp(el) {
+    if (!WEBP || !WEBP.size) return;
+    el.querySelectorAll("img").forEach(function (img) {
+      var src = img.getAttribute("src") || "";
+      var next = src.replace(/\.(png|jpe?g)$/i, ".webp");
+      if (next === src || !WEBP.has(next)) return;
+      img.addEventListener("error", function () { img.src = src; }, { once: true });
+      img.src = next;
+    });
+  }
+
   /* 渲染后的增强处理：标题 id、图片懒加载、外链、表格滚动 */
   function enhance(el) {
     var headings = [];
@@ -68,6 +88,9 @@
       if (!img.hasAttribute("loading")) img.loading = "lazy";
       if (!img.hasAttribute("decoding")) img.decoding = "async";
     });
+    /* 清单已就位就同步换（此时图片还没进 DOM，不会白发请求）；没就位则等它 */
+    if (WEBP) swapWebp(el);
+    else webpReady.then(function () { swapWebp(el); });
     el.querySelectorAll('a[href^="http"]').forEach(function (a) {
       a.target = "_blank";
       a.rel = "noopener noreferrer";
@@ -234,6 +257,11 @@
     var lastRaw = "";
 
     function renderArticle(raw) {
+      /* 等 WebP 清单到位再解析：此时图片还没进 DOM，换源不会白发一次原图请求 */
+      webpReady.then(function () { renderArticleBody(raw); });
+    }
+
+    function renderArticleBody(raw) {
       lastRaw = raw;
       var parts = splitFM(raw);
       var fm = parts.fm, body = parts.body;

@@ -173,10 +173,19 @@ def build(include_drafts=False):
 
     public = posts if include_drafts else [p for p in posts if not p.get("draft")]
 
+    # 文章配图如果生成了 WebP 副本，就把路径列出来，前端按清单换源（换不到仍用原图）
+    webp = sorted(
+        "posts/" + os.path.relpath(os.path.join(d, fn), POSTS_DIR).replace(os.sep, "/")
+        for d, _, fns in os.walk(POSTS_DIR)
+        for fn in fns
+        if fn.lower().endswith(".webp")
+    )
+
     with open(os.path.join(ROOT, "posts.json"), "w", encoding="utf-8") as f:
         json.dump({
             "updated": datetime.datetime.now().isoformat(timespec="seconds"),
             "posts": public,
+            "webp": webp,
         }, f, ensure_ascii=False, indent=2)
         f.write("\n")
 
