@@ -29,6 +29,7 @@ window.SAKURA_CONFIG = {
     sd:     "assets/video/bg.mp4",      // 720p 版（1.5MB，慢速网络用）
     poster: "assets/img/poster.webp",        // 桌面海报（1280 宽 WebP，144KB）
     posterSmall: "assets/img/poster-sm.webp", // 手机海报（720 宽，55KB）
+    posterFallback: "assets/img/poster.jpg",  // WebP 没拿到时的兜底（也给 og:image 用）
   },
 
   /* ---------- 樱花飘落 ---------- */

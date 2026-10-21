@@ -118,7 +118,15 @@
     if (poster && C.video) {
       /* 手机用 720 宽的版本，省 90KB；CSS 里已有一份默认值兜底 */
       var pv = C.video.posterSmall && window.innerWidth <= 720 ? C.video.posterSmall : C.video.poster;
-      if (pv) poster.style.backgroundImage = 'url("' + pv + '")';
+      if (pv) {
+        poster.style.backgroundImage = 'url("' + pv + '")';
+        /* WebP 万一没拿到（缓存了 404 / 网络失败），退回原 JPEG */
+        var probe = new Image();
+        probe.onerror = function () {
+          if (C.video.posterFallback) poster.style.backgroundImage = 'url("' + C.video.posterFallback + '")';
+        };
+        probe.src = pv;
+      }
     }
 
     var v = $("#bgVideo");
@@ -141,7 +149,8 @@
       if (v.classList.contains("is-on")) return;
       v.classList.add("is-on"); // CSS 1.2s 缓慢淡入；此刻视频画面与海报同帧，切换无缝
       tryPlay();
-      setTimeout(function () { if (poster) poster.style.display = "none"; }, 1600);
+      /* 海报**不再删掉**：视频不透明时它本来就被盖住，留着当永久兜底。
+         原来这里 display:none，视频一旦被浏览器暂停/解码失败，背景就整片空了 */
     };
     var start = function () {
       if (document.hidden || v.getAttribute("data-armed")) return;
@@ -167,6 +176,22 @@
       tick();
       v.addEventListener("error", function () { v.classList.remove("is-on"); }, { once: true });
     };
+    /* 看门狗：视频明明该在放却停了（切后台被暂停、解码失败、显存回收），
+       先退回海报（不然背景一片空白），再尝试重新播放 */
+    var stuckAt = 0;
+    setInterval(function () {
+      if (!v.classList.contains("is-on")) { stuckAt = 0; return; }
+      if (!v.paused && v.readyState >= 2) { stuckAt = 0; return; }
+      if (!stuckAt) { stuckAt = Date.now(); return; }
+      if (Date.now() - stuckAt < 5000) return;
+      stuckAt = 0;
+      v.classList.remove("is-on");   // 淡出视频，露出海报
+      tryPlay();
+    }, 2000);
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden && v.getAttribute("data-armed")) tryPlay();
+    });
+
     var idle = window.requestIdleCallback || function (f) { return setTimeout(f, 1200); };
     var scheduleStart = function () {
       if (!document.hidden) idle(start);
