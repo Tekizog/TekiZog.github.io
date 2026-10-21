@@ -2168,10 +2168,15 @@ html[data-theme="night"] .post-crumb a:hover {
   .tools .search { flex: 1 1 auto; width: auto; min-width: 0; }
   .grid { grid-template-columns: 1fr; }
 
-  /* 文章页：原来两侧各吃掉 52px（wrap 24 + article 28），390 屏文字只剩 284px。
-     收到 8 + 16，文字宽约 342px（88%），卡片边缘还看得出来 */
-  .post-wrap { padding: 22px 8px 0; }
-  .article { padding: 18px 16px 22px; border-radius: 18px; }
+  /* 文章页：手机上去掉卡片「框」——左右不留缝、无边框无圆角，
+     正文变成整幅通栏（390 屏约 358px / 92%）。
+     底色仍保留：正文压在背景视频上，没有这层就没法读 */
+  .post-wrap { padding: 16px 0 0; }
+  .article {
+    padding: 20px 16px 26px;
+    border: none;
+    border-radius: 0;
+  }
 }
 
 /* 手机导航：四个链接 + 主题按钮在 390 宽就会顶出屏幕（实测右边缘到 412），
