@@ -1573,6 +1573,31 @@ html[data-theme="night"] .avatar { background: linear-gradient(135deg, var(--pin
 }
 .about-text p { color: var(--ink-2); font-size: 0.98rem; }
 
+/* ---------- 提示块 :::tip … ::: ---------- */
+.admonition {
+  margin: 1.3em 0;
+  padding: 13px 18px 15px;
+  border-left: 3px solid var(--adm, #5a96ff);
+  border-radius: 6px 14px 14px 6px;
+  background: color-mix(in srgb, var(--adm, #5a96ff) 8%, transparent);
+  font-size: 0.97em;
+}
+.admonition > *:first-child { margin-top: 0; }
+.admonition > *:last-child { margin-bottom: 0; }
+.adm-title {
+  margin: 0 0 6px;
+  color: var(--adm, #5a96ff);
+  font-weight: 700;
+  font-size: 0.84em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.adm-note { --adm: #5a96ff; }
+.adm-tip { --adm: #3fbf8f; }
+.adm-important { --adm: #9b6cf0; }
+.adm-warning { --adm: #e59a2f; }
+.adm-caution { --adm: #ef5f6b; }
+
 /* ---------- 图片灯箱 ---------- */
 /* 正文里的图默认显示放大镜光标，点一下铺满全屏 */
 .article-body img { cursor: zoom-in; }
@@ -2142,6 +2167,11 @@ html[data-theme="night"] .post-crumb a:hover {
   .tools { flex-wrap: nowrap; width: 100%; }
   .tools .search { flex: 1 1 auto; width: auto; min-width: 0; }
   .grid { grid-template-columns: 1fr; }
+
+  /* 文章页：原来两侧各吃掉 52px（wrap 24 + article 28），390 屏文字只剩 284px。
+     收到 8 + 16，文字宽约 342px（88%），卡片边缘还看得出来 */
+  .post-wrap { padding: 22px 8px 0; }
+  .article { padding: 18px 16px 22px; border-radius: 18px; }
 }
 
 /* 手机导航：四个链接 + 主题按钮在 390 宽就会顶出屏幕（实测右边缘到 412），

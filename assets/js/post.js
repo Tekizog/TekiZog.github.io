@@ -353,6 +353,34 @@
 
     marked.use({ gfm: true, breaks: true });
 
+    /* :::tip / :::note … ::: 提示块：marked 本身不认，补一个块级扩展。
+       编辑器的预览是支持的，博客这边原来会原样显示 :::tip */
+    var ADM_LABEL = { note: "Note", tip: "Tip", important: "Important", warning: "Warning", caution: "Caution" };
+    marked.use({
+      extensions: [{
+        name: "admonition",
+        level: "block",
+        start: function (src) { var i = src.indexOf(":::"); return i < 0 ? undefined : i; },
+        tokenizer: function (src) {
+          var m = /^:::[ \t]*(note|tip|important|warning|caution)[ \t]*(?:\[(.*?)\])?[ \t]*\n([\s\S]*?)\n:::[ \t]*(?:\n|$)/.exec(src);
+          if (!m) return;
+          return {
+            type: "admonition",
+            raw: m[0],
+            kind: m[1],
+            title: m[2] || "",
+            tokens: this.lexer.blockTokens(m[3], [])
+          };
+        },
+        renderer: function (token) {
+          return '<div class="admonition adm-' + token.kind + '">' +
+            '<p class="adm-title">' + esc(token.title || ADM_LABEL[token.kind]) + "</p>" +
+            this.parser.parse(token.tokens) +
+            "</div>";
+        }
+      }]
+    });
+
     var postUrl = "posts/" + slug.split("/").map(encodeURIComponent).join("/") + ".md";
     var lastRaw = "";
 
