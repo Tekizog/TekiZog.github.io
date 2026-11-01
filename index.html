@@ -13,7 +13,7 @@
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
   <link rel="preload" as="image" href="assets/img/poster.webp" media="(min-width: 721px)">
   <link rel="preload" as="image" href="assets/img/poster-sm.webp" media="(max-width: 720px)">
-  <link rel="stylesheet" href="assets/css/style.css?v=20261021C">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261026H">
   <script>
     /* 首帧前恢复主题：夜樱用户刷新时不闪一下昼樱 */
     try {
@@ -22,8 +22,8 @@
       if (__t) document.documentElement.setAttribute("data-theme", __t);
     } catch (e) {}
   </script>
-  <script defer src="assets/config.js?v=20261020"></script>
-  <script defer src="assets/js/site.js?v=20261021C"></script>
+  <script defer src="assets/config.js?v=20261026H"></script>
+  <script defer src="assets/js/site.js?v=20261026H"></script>
 </head>
 <body class="home">
   <script>
@@ -33,6 +33,8 @@
     (function () {
       var h = location.hash;
       if (h === "#notes" || h === "#posts") document.body.classList.add("at-notes");
+      else if (h === "#series") document.body.classList.add("at-series");
+      else if (h === "#archive") document.body.classList.add("at-archive");
       else if (h === "#about") document.body.classList.add("at-about");
     })();
   </script>
@@ -77,6 +79,7 @@
     <nav class="nav-links">
       <a class="nav-keep is-active" href="index.html" data-nav="cover">首页</a>
       <a class="nav-keep" href="#posts" data-nav="notes">手记</a>
+      <a class="nav-keep" href="#series" data-nav="series">合集</a>
       <a class="nav-keep" href="#archive" data-nav="archive">归档</a>
       <a class="nav-keep" href="#about" data-nav="about">关于</a>
       <a id="ghLink" target="_blank" rel="noopener">GitHub</a>
@@ -224,6 +227,18 @@
         </div>
       </div>
       <div class="archive" id="archive"></div>
+    </section>
+  </div>
+
+  <!-- 合集视图（独立页面）：同一 series 的文章归成一个合集 -->
+  <div class="view view-series" id="viewSeries">
+    <section class="section">
+      <div class="section-head reveal in">
+        <p class="section-jp">シリーズいちらん</p>
+        <h2 class="section-title">合集</h2>
+      </div>
+      <p class="series-tip reveal in">同一个系列的文章归在这里，按写作顺序排好，从第一篇顺着读下来就行。</p>
+      <div class="series-list" id="seriesList"></div>
     </section>
   </div>
 

@@ -19,6 +19,20 @@ window.SAKURA_CONFIG = {
   siteUrl: "",           // 部署后的完整地址（用于 RSS 订阅），如 "https://yourname.github.io/blog/"
   footer: "© 2026 樱花街道 · Sakura Street",
 
+  /* ---------- 合集（series）----------
+     文章 front matter 里写 series: 合集名，同名的自动归成一个合集；
+     再写 seriesOrder: 1 指定第几篇（不写就按发布日期排）。
+     这里可以给合集补一句简介（desc），不写就借用第一篇的摘要。
+     键名必须和 front matter 里的 series 一字不差。 */
+  series: {
+    "写作指南": {
+      desc: "从「文件放哪、front matter 怎么填」讲到 Markdown 排版和避坑，把这条街的写法一次讲完。"
+    },
+    "CNSS2026 writeup": {
+      desc: "CNSS2026 春季赛 Web 方向的题解合集，按做题顺序整理。"
+    }
+  },
+
   /* ---------- 背景视频 ----------
      hd  ：网络较好时的版本（1080p，约 4.7MB）
      sd  ：普通/慢速网络版本（720p，约 1.5MB）

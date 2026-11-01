@@ -266,6 +266,33 @@ body.home.at-archive .view-notes {
   transition: opacity 0.2s ease;
 }
 
+/* 合集视图：和归档同一套进出规则（独立整页，靠透明度切换） */
+.view-series {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  transition: opacity 0.2s ease;
+}
+body.home .view-series { opacity: 0; pointer-events: none; }
+body.home.at-series .view-series {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.34s ease 0.16s;
+}
+body.home.at-series .view-cover {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+body.home.at-series .view-notes {
+  transform: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
 /* ---------- 樱花画布 ---------- */
 #petals {
   position: fixed;
@@ -1295,6 +1322,157 @@ html[data-theme="night"] .hero-title.is-split { filter: drop-shadow(0 0 26px rgb
   .arc-year { padding: 4px 14px 8px; }
 }
 
+/* ---------- 合集视图 ---------- */
+/* 说明文字直接压街景上读不清，垫一层和卡片同款的玻璃底 */
+.series-tip {
+  width: -moz-fit-content;
+  width: fit-content;
+  max-width: 100%;
+  margin: -6px auto 22px;
+  padding: 6px 18px 7px;
+  border-radius: 99px;
+  border: 1px solid var(--card-border);
+  background: var(--panel);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  text-align: center;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--ink);
+  opacity: 0.82;
+}
+.series-list { display: grid; gap: 16px; }
+
+.series-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 4px 22px 2px;
+  /* 网格项的自动最小尺寸是内容的 min-content，标题 nowrap 会把卡片顶宽 */
+  min-width: 0;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transition: border-color 0.25s ease, box-shadow 0.3s ease;
+}
+.series-card:hover { border-color: rgba(242, 113, 156, 0.42); box-shadow: var(--shadow); }
+
+.series-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 15px 0 12px;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.series-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: 1.08rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.25s;
+}
+.series-head:hover .series-name { color: var(--pink-strong); }
+.series-meta {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.76rem;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.series-meta em { font-style: normal; font-weight: 700; color: var(--pink-ink); }
+
+/* 折角箭头：展开时翻 90°，不额外加载图标 */
+.series-caret {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  border-right: 2px solid var(--ink-2);
+  border-bottom: 2px solid var(--ink-2);
+  border-radius: 1px;
+  transform: rotate(-45deg);
+  transition: transform 0.3s var(--ease), border-color 0.25s;
+}
+.series-card.is-open .series-caret { transform: rotate(45deg); margin-top: 4px; }
+.series-head:hover .series-caret { border-color: var(--pink); }
+
+.series-desc {
+  padding: 0 0 12px;
+  font-size: 0.86rem;
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+
+/* 折叠：grid-template-rows 0fr → 1fr，不用 JS 量高度，
+   内容多长都能平滑展开（比 max-height 猜一个值可靠） */
+.series-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.34s var(--ease);
+}
+.series-card.is-open .series-body { grid-template-rows: 1fr; }
+.series-body-in { overflow: hidden; }
+
+.series-articles { list-style: none; margin: 0; padding: 0 0 10px; }
+.sa-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 8px;
+  border-top: 1px dashed var(--card-border);
+  border-radius: 10px;
+  color: var(--ink);
+  transition: background-color 0.2s, color 0.2s;
+}
+.series-articles li:first-child .sa-row { border-top: 0; }
+.sa-row:hover { background: var(--pink-soft); color: var(--pink-ink); }
+.sa-no {
+  flex: 0 0 auto;
+  width: 22px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--pink);
+  font-variant-numeric: tabular-nums;
+}
+.sa-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sa-date {
+  flex: 0 0 auto;
+  font-size: 0.76rem;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 720px) {
+  /* 手机上日期和「共 N 篇」都挤，只留系列名和篇数 */
+  .series-meta span { display: none; }
+  .sa-date { display: none; }
+  .series-card { padding: 4px 16px 2px; }
+  .sa-title {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+}
+
 /* 标签栏：单行横向滚动。
    标签数量会随文章增长，换行会把文章列表越推越低；改成一行可横拖，
    高度恒定，多到几十个也不影响版面。溢出时才淡出右边缘提示「还有更多」 */
@@ -1391,6 +1569,9 @@ html[data-theme="night"] .hero-title.is-split { filter: drop-shadow(0 0 26px rgb
   display: grid;
   /* 280 而不是 300：宽屏卡片列定在 900，三列要 3×280+2×22 = 884 才放得下 */
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  /* 所有行等高：卡片内容长短不一时（有的标题两行、有的摘要三行），
+     整块列表里每张卡片尺寸仍然完全一致，不会一行高一行的 */
+  grid-auto-rows: 1fr;
   gap: 22px;
 }
 
@@ -1476,6 +1657,12 @@ html[data-theme="night"] .card::before {
   letter-spacing: 0.02em;
   margin: 10px 0 8px;
   line-height: 1.45;
+  /* 兜底：所有行等高，一个超长标题会把整块列表都撑高，
+     超过三行的标题裁掉，保护其他卡片的尺寸 */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   transition: color 0.25s;
 }
 .card:hover .card-title { color: var(--pink-strong); }
@@ -1993,6 +2180,199 @@ html[data-theme="night"] .post-crumb a:hover {
 .article tr:nth-child(even) td { background: var(--pink-soft); opacity: 0.65; }
 
 .article input[type="checkbox"] { accent-color: var(--pink); margin-right: 6px; }
+
+/* --- 合集：头图区的「第 N 篇 / 共 M 篇」胶囊 ---
+   和 .post-meta 一样压在视频上，所以也用深色玻璃底 + 白字 */
+.post-series {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+.ps-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 16px 8px;
+  border-radius: 99px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(24, 18, 34, 0.52);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  font-size: 0.84rem;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+  transition: background-color 0.25s, border-color 0.25s;
+}
+.ps-link:hover { background: rgba(24, 18, 34, 0.68); border-color: rgba(255, 255, 255, 0.42); }
+.ps-kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #ffd9e4;
+}
+.ps-name { font-weight: 700; }
+.ps-pos { color: rgba(255, 255, 255, 0.78); font-variant-numeric: tabular-nums; }
+
+/* --- 合集：正文末尾的合集目录 --- */
+.series-box {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 18px 22px 12px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.sbox-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.sbox-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--pink-strong);
+}
+.sbox-head b {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+.sbox-head em { font-style: normal; font-size: 0.76rem; color: var(--ink-2); margin-left: auto; }
+
+.sbox-list { list-style: none; margin: 0; padding: 0; }
+.sbox-list li > a,
+.sbox-list li.is-cur {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 9px 8px;
+  border-radius: 10px;
+  color: var(--ink);
+  transition: background-color 0.2s, color 0.2s;
+}
+.sbox-list li > a:hover { background: var(--pink-soft); color: var(--pink-ink); }
+/* 当前这篇：不能点，用粉色序号 + 左侧竖条标出来 */
+.sbox-list li.is-cur {
+  background: var(--pink-soft);
+  color: var(--pink-ink);
+  font-weight: 700;
+}
+.sbox-no {
+  flex: 0 0 auto;
+  width: 22px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--pink);
+  font-variant-numeric: tabular-nums;
+}
+.sbox-t {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.92rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sbox-all {
+  display: block;
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--card-border);
+  font-size: 0.82rem;
+  text-align: right;
+}
+
+/* ---------- 宽屏：合集目录搬到左侧当固定侧栏 ----------
+   1400px 以下正文两侧塞不下两块侧栏（右边还有目录），退回正文末尾的横排版本。
+   1400px 时正文卡片左边缘在 (1400-940)/2+24 = 254px，侧栏 18+210 = 228px，留 26px 空隙 */
+@media (min-width: 1400px) {
+  .series-box {
+    position: fixed;
+    left: max(18px, calc((100vw - 1440px) / 2));
+    top: 50%;
+    transform: translateY(-50%);
+    /* 跟着屏幕走：窄屏 200px，宽屏最多 240px。上限再大会在 1400px 压到正文卡片 */
+    width: clamp(200px, 15vw, 240px);
+    max-height: 62vh;
+    margin: 0;
+    padding: 15px 12px 10px;
+    border-width: 1.5px;
+    border-radius: 16px;
+    box-shadow: 0 12px 32px -20px rgba(67, 48, 62, 0.4);
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    animation: tocFade 0.8s ease backwards;
+  }
+
+  /* 标题区：标签和篇数占一行，合集名换行占满，长名字不会被挤成省略号 */
+  .series-box .sbox-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 8px;
+    margin-bottom: 6px;
+    padding-bottom: 9px;
+  }
+  .series-box .sbox-label { order: 1; font-size: 0.68rem; letter-spacing: 0.14em; }
+  .series-box .sbox-head em { order: 2; margin-left: 0; font-size: 0.7rem; }
+  .series-box .sbox-head b {
+    order: 3;
+    flex: 1 1 100%;
+    margin-top: 4px;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    word-break: break-word;
+  }
+
+  /* 列表自己滚：滚轮停在侧栏上只滚合集，不带动整页（overscroll-behavior 兜住边界） */
+  .series-box .sbox-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar) transparent;
+  }
+  .series-box .sbox-list::-webkit-scrollbar { width: 4px; }
+  .series-box .sbox-list::-webkit-scrollbar-track { background: transparent; }
+  .series-box .sbox-list::-webkit-scrollbar-thumb {
+    background: var(--scrollbar);
+    border-radius: 99px;
+  }
+
+  .series-box .sbox-list li > a,
+  .series-box .sbox-list li.is-cur {
+    gap: 9px;
+    padding: 6px 6px;
+    border-radius: 8px;
+  }
+  .series-box .sbox-no { width: 19px; font-size: 0.72rem; }
+  /* 侧栏只有 176–216px 可用宽度，标题给两行，比一刀切省略号好读 */
+  .series-box .sbox-t {
+    font-size: 0.82rem;
+    line-height: 1.55;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  /* 「草稿」标签夹在两行标题里会被 line-clamp 裁掉，侧栏里直接不显示——
+     真在读草稿时，头图区的 meta 里本来就有「草稿」 */
+  .series-box .sbox-t .chip-draft { display: none; }
+  .series-box .sbox-all {
+    margin-top: 4px;
+    padding-top: 8px;
+    font-size: 0.76rem;
+    text-align: center;
+  }
+}
 
 /* --- 文章底部 --- */
 .post-foot {

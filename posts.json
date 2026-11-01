@@ -1,6 +1,30 @@
 {
-  "updated": "2026-10-21T20:50:55",
+  "updated": "2026-11-02T01:01:46",
   "posts": [
+    {
+      "slug": "[web入门]信息收集知识点/index",
+      "title": "[web入门]信息收集知识点",
+      "date": "2026-10-26",
+      "tags": [],
+      "category": "web入门",
+      "excerpt": "",
+      "minutes": 1,
+      "snippet": "[web入门]信息收集知识点 本文知识点总结于webshow中web入门的题集 源码注释 web中最最最简单的考法就是在html的注释中写入关键信息，html的注释格式为：<!--注释内容-->。查看源码的方式有很多，",
+      "series": "web入门",
+      "draft": true,
+      "seriesOrder": 1
+    },
+    {
+      "slug": "misc11(ctfshow)/index",
+      "title": "ctfshow misc11",
+      "date": "2026-10-25",
+      "tags": [],
+      "category": "",
+      "excerpt": "",
+      "minutes": 1,
+      "snippet": "ctfshow misc11 本题考察的是PNG图片文件的结构 前置知识：PNG文件结构 1、PNG文件标签 PNG用010editor打开，可以看到PNG文件头格式为“89 50 4E 47 0D 0A 1A 0A”，",
+      "draft": true
+    },
     {
       "slug": "2026-09-13-写作指南一-元信息-图片与草稿",
       "title": "写作指南（一）：元信息、图片与草稿",
@@ -11,7 +35,9 @@
       ],
       "category": "写作指南",
       "excerpt": "front matter 每个字段怎么填、单文件和文件夹两种文章形式、图片路径规则、草稿怎么用——一篇讲清写文章的「外壳」。",
-      "minutes": 3
+      "minutes": 3,
+      "series": "写作指南",
+      "seriesOrder": 1
     },
     {
       "slug": "2026-09-13-写作指南二-Markdown基础语法",
@@ -24,7 +50,9 @@
       ],
       "category": "写作指南",
       "excerpt": "标题、强调、列表、引用、链接、图片、代码块、表格……写文章够用的 Markdown 语法，配着例子一遍过。",
-      "minutes": 2
+      "minutes": 2,
+      "series": "写作指南",
+      "seriesOrder": 2
     },
     {
       "slug": "2026-09-13-写作指南三-排版进阶与避坑",
@@ -37,7 +65,9 @@
       ],
       "category": "写作指南",
       "excerpt": "引用里套代码块、列表里放图片、长文的结构建议、本站暂不支持的写法清单，以及「图裂了/表格断了/改动没生效」的速查表。",
-      "minutes": 4
+      "minutes": 4,
+      "series": "写作指南",
+      "seriesOrder": 3
     },
     {
       "slug": "2026-09-12-hello-sakura",
@@ -49,7 +79,7 @@
       ],
       "category": "随笔",
       "excerpt": "这是你的第一篇手记。写文章真的很简单：放一个 Markdown 文件到 posts 文件夹，跑一次构建，剩下的交给风。",
-      "minutes": 1
+      "minutes": 2
     },
     {
       "slug": "2026-09-08-a-day-in-sakura-street",
@@ -73,7 +103,10 @@
       ],
       "category": "CNSS2026 writeup",
       "excerpt": "",
-      "minutes": 4
+      "minutes": 5,
+      "snippet": "打开靶机网页就显示这一段代码 这段代码写的是：如果$_POST['ip']被设置了，那么就将用户输入的ip赋给$ip这个变量，然后将$ip传ping()函数，得到的结果赋值给$ip_result然后echo打印出来。",
+      "series": "CNSS2026 writeup",
+      "seriesOrder": 5
     },
     {
       "slug": "万象归一/万象归一",
@@ -86,7 +119,10 @@
       "category": "CNSS2026 writeup",
       "excerpt": "",
       "minutes": 1,
-      "draft": true
+      "snippet": "打开靶机后的网页只显示一段代码以及打印出来的一段字符 这段代码写的是",
+      "series": "CNSS2026 writeup",
+      "draft": true,
+      "seriesOrder": 4
     },
     {
       "slug": "CNSS娘的零食大作战/CNSS娘的零食大作战",
@@ -98,7 +134,10 @@
       ],
       "category": "CNSS2026 writeup",
       "excerpt": "",
-      "minutes": 1
+      "minutes": 1,
+      "snippet": "这题打开靶机是一个小游戏 如果你嫌时间长，玩到9999 flag也能出来，但是这道题有个更快的方法。我们直接f12查看源代码 你会发现，它的分数变量放在了前端，就是let score = 0;(在26行处)，",
+      "series": "CNSS2026 writeup",
+      "seriesOrder": 1
     },
     {
       "slug": "babyshell/babyshell",
@@ -110,7 +149,10 @@
       ],
       "category": "CNSS2026 writeup",
       "excerpt": "",
-      "minutes": 1
+      "minutes": 1,
+      "snippet": "这题打开给的靶机后是一个终端界面： 然后按照指示输入 help ，得到显示可以用指令有： 然后输入 ls 来查看当前目录的文件，发现有两个文件： 其中有一个写着fakeflag的文本，显然它是一个假的flag，",
+      "series": "CNSS2026 writeup",
+      "seriesOrder": 2
     },
     {
       "slug": "当CNSS娘遇见/当CNSS娘遇见",
@@ -122,7 +164,10 @@
       ],
       "category": "CNSS2026 writeup",
       "excerpt": "",
-      "minutes": 1
+      "minutes": 2,
+      "snippet": "靶机打开是一个输入框： 尝试输入一些数字发现输入长度必须是10，比较容易猜到应该是输入某些字符与后端的固定字符完全一致时，CNSS娘的观点应该会返回flag。",
+      "series": "CNSS2026 writeup",
+      "seriesOrder": 3
     }
   ],
   "webp": [

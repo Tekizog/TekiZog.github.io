@@ -3,6 +3,7 @@ title: "[CNSS2026 web] Ping"
 date: 2026-09-04
 tags: CTF, CNSS
 category: 'CNSS2026 writeup'
+series: CNSS2026 writeup
 draft: false
 ---
 打开靶机网页就显示这一段代码

@@ -17,6 +17,11 @@
   单文件：posts/2026-09-12-文章名.md
   文件夹：posts/文章名/index.md（图片放文章旁边，正文里用 posts/文章名/图片.jpg 引用）
 
+合集（同一个系列的多篇文章）：
+  在 front matter 里写 series: 合集名 即可归到同一合集；
+  再写 seriesOrder: 1 指定它是第几篇（不写就按发布日期排）。
+  首页「合集」页会按系列顺序列出全部文章，文章页也会显示「第 N 篇 / 共 M 篇」。
+
 草稿规则：
   front matter 写 draft: true 的文章只在本地预览（python build.py）时可见；
   部署构建（python build.py --dist，GitHub Actions 用的就是它）会自动剔除——
@@ -77,13 +82,45 @@ def parse_front_matter(text):
 
 
 def plain_text(md):
-    """粗略去掉 Markdown 语法，用于摘要与字数统计"""
-    md = re.sub(r"```[\s\S]*?```", " ", md)
-    md = re.sub(r"`[^`\n]*`", " ", md)
-    md = re.sub(r"!\[[^\]]*\]\([^)]*\)", " ", md)
-    md = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", md)
-    md = re.sub(r"[#>*_~|`]+", " ", md)
+    """粗略去掉 Markdown 语法，用于摘要与字数统计。
+
+    行内代码保留内容（只去掉反引号）：CTF 题解这类文章满篇 `$_POST['ip']`，
+    整段抹掉会让摘要读成「如果 被设置了，那么就将用户输入的 赋给」。
+    """
+    md = re.sub(r"```[\s\S]*?```", " ", md)              # 代码块整块丢掉
+    md = re.sub(r"`([^`\n]*)`", r"\1", md)               # 行内代码留内容
+    # 图片/链接的地址里可能带括号（posts/misc11(ctfshow)/image.png），
+    # 只匹配到第一个 ) 会留下半截路径，所以允许一层嵌套括号
+    url = r"\((?:[^()]|\([^()]*\))*\)"
+    md = re.sub(r"!\[[^\]]*\]" + url, " ", md)           # 图片
+    md = re.sub(r"\[([^\]]*)\]" + url, r"\1", md)        # 链接留文字
+    md = re.sub(r"^\s{0,3}(#{1,6}|>|[-*+]|\d+\.)\s+", " ", md, flags=re.M)  # 行首标记
+    md = re.sub(r"\*\*([^*\n]+)\*\*", r"\1", md)         # 加粗
+    md = re.sub(r"(?<![0-9A-Za-z])_([^_\n]+)_(?![0-9A-Za-z])", r"\1", md)  # 斜体
+    md = re.sub(r"[*~|]+", " ", md)
     return re.sub(r"\s+", " ", md).strip()
+
+
+def make_snippet(text, limit=110):
+    """没写 excerpt 时，拿正文开头当摘要——保证首页每张卡片都有字，不会空一块。
+
+    尽量在标点处收尾，免得把一句话从中间截断；实在找不到合适断点就直接截断加省略号。
+    """
+    s = (text or "").strip()
+    if not s:
+        return ""
+    if len(s) <= limit:
+        return s
+    head = s[:limit]
+    best = -1
+    for sep in ("。", "！", "？", "；", "…", "，", "、", ".", "!", "?", ";", ","):
+        i = head.rfind(sep)
+        # 断点太靠前会只剩半句话，不如整段截断
+        if i > best and i >= limit * 0.55:
+            best = i
+    if best > 0:
+        return head[:best + 1]
+    return head.rstrip() + "…"
 
 
 def make_post(fname):
@@ -103,15 +140,46 @@ def make_post(fname):
     tags = [t.strip() for t in re.split(r"[,，]", fm.get("tags", "")) if t.strip()]
 
     text = plain_text(body)
-    excerpt = fm.get("excerpt", "")
+    excerpt = fm.get("excerpt", "").strip()
     minutes = max(1, round(len(text) / 400)) or 1
 
     post = {"slug": stem, "title": title, "date": date, "tags": tags,
             "category": fm.get("category", "").strip().strip('"').strip("'"),
             "excerpt": excerpt, "minutes": minutes}
+    # 没写摘要就从正文开头截一段，前端用 excerpt || snippet 取
+    if not excerpt:
+        post["snippet"] = make_snippet(text)
+    # 合集：series 是合集名，seriesOrder 是它在合集里的序号（1 起）。
+    # 序号可以留空，build() 里会按发布日期补上
+    series = fm.get("series", "").strip().strip('"').strip("'")
+    if series:
+        post["series"] = series
+        order = fm.get("seriesorder", "").strip()
+        if order.isdigit() and int(order) > 0:
+            post["seriesOrder"] = int(order)
     if fm.get("draft", "").strip().lower() in ("true", "yes", "1", "是"):
         post["draft"] = True
     return post
+
+
+def assign_series_order(posts):
+    """给同一合集的文章补上序号，保证前端拿到的顺序是确定的。
+
+    规则：
+      1. 整个合集都没写 seriesOrder → 按发布日期排（同一天按文件名自然序）
+      2. 写了 seriesOrder 的按它排，没写的用它在该合集「日期序」里的位置顶上
+    这样「先写了（三）再补（一）」也能靠手写序号纠正顺序。
+    """
+    groups = {}
+    for p in posts:
+        if p.get("series"):
+            groups.setdefault(p["series"], []).append(p)
+    for group in groups.values():
+        by_date = sorted(group, key=lambda p: (p["date"], natural_key(p["slug"])))
+        for i, p in enumerate(by_date, 1):
+            p.setdefault("seriesOrder", i)
+        # 最终按 (序号, 日期) 排一遍，只影响输出顺序，不影响上面算出来的序号
+        group.sort(key=lambda p: (p["seriesOrder"], p["date"]))
 
 
 def find_post_files():
@@ -166,6 +234,7 @@ def build(include_drafts=False):
         os.makedirs(POSTS_DIR, exist_ok=True)
     files = find_post_files()
     posts = [make_post(f) for f in files]
+    assign_series_order(posts)
     # 先按文件名自然序（同一天的多篇按 一/二/三 排），再按日期倒序；
     # Python 的排序是稳定的，第二次排序不会打乱同一天内部的顺序
     posts.sort(key=lambda p: natural_key(p["slug"]))
@@ -210,7 +279,7 @@ def write_feed(posts):
             "<item><title>%s</title><link>%s</link><guid>%s</guid>"
             "<pubDate>%s</pubDate><description>%s</description></item>"
             % (html.escape(p["title"]), html.escape(link), html.escape(link),
-               pub, html.escape(p["excerpt"])))
+               pub, html.escape(p.get("excerpt") or p.get("snippet") or "")))
     rss = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<rss version="2.0"><channel>'
@@ -236,11 +305,15 @@ def new_post(title):
         "excerpt: \n"
         "cover: \n"
         "draft: false\n"
+        "series: \n"
+        "seriesOrder: \n"
         "---\n\n"
         "# %s\n\n"
         "> 小提示：front matter 里的字段都可以留空或删除；\n"
         "> excerpt 留空就不显示摘要；draft 改成 true 就是草稿，\n"
-        "> 只在本地预览可见，部署到线上时会自动隐藏。\n" % (title, today, title)
+        "> 只在本地预览可见，部署到线上时会自动隐藏。\n"
+        "> series 填合集名（同名的文章自动归成一个合集），\n"
+        "> seriesOrder 填第几篇，不填就按发布日期排。\n" % (title, today, title)
     )
     with open(path, "w", encoding="utf-8") as f:
         f.write(template)

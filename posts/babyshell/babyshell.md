@@ -3,6 +3,7 @@ title: "[CNSS2026 web] babyshell"
 date: 2026-08-27
 tags: CTF, CNSS
 category: CNSS2026 writeup
+series: CNSS2026 writeup
 draft: false
 ---
 这题打开给的靶机后是一个终端界面：

@@ -285,31 +285,127 @@
     }
   }
 
+  /* 文章索引：上下篇和合集都要用，只取一次 */
+  var indexPromise = null;
+  function loadIndex() {
+    if (!indexPromise) {
+      indexPromise = fetch("posts.json", { cache: contentCache })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .catch(function () { return null; });
+    }
+    return indexPromise;
+  }
+
+  /* 当前文章所属合集里的全部文章，按 seriesOrder 排好；不在合集里（或只有一篇）返回 null */
+  function seriesOf(posts, cur) {
+    if (!cur || !cur.series) return null;
+    var list = posts.filter(function (p) { return p.series === cur.series; });
+    if (list.length < 2) return null;
+    list.sort(function (a, b) {
+      var oa = a.seriesOrder == null ? 1e9 : a.seriesOrder;
+      var ob = b.seriesOrder == null ? 1e9 : b.seriesOrder;
+      return oa - ob || (a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+    });
+    return list;
+  }
+
+  /* 合集：头图区挂「第 N 篇 / 共 M 篇」，正文末尾挂整个合集目录 */
+  function buildSeries() {
+    loadIndex().then(function (data) {
+      if (!data) return;
+      var posts = data.posts || [];
+      var cur = null;
+      for (var k = 0; k < posts.length; k++) if (posts[k].slug === slug) { cur = posts[k]; break; }
+      var list = seriesOf(posts, cur);
+      if (!list) return;
+      var idx = 0;
+      for (var i = 0; i < list.length; i++) if (list[i].slug === slug) { idx = i; break; }
+
+      var bar = $("#postSeries");
+      if (bar) {
+        bar.innerHTML = '<a class="ps-link" href="index.html#series">' +
+          '<span class="ps-kicker">合集</span>' +
+          '<span class="ps-name">' + esc(cur.series) + "</span>" +
+          '<span class="ps-pos">第 ' + (idx + 1) + " 篇 / 共 " + list.length + " 篇</span>" +
+          "</a>";
+        bar.hidden = false;
+      }
+
+      var box = $("#seriesBox");
+      if (box) {
+        var rows = list.map(function (p, i) {
+          var no = ("0" + (i + 1)).slice(-2);
+          var draft = p.draft ? '<span class="chip chip-draft">草稿</span>' : "";
+          if (p.slug === slug) {
+            return '<li class="is-cur"><span class="sbox-no">' + no + "</span>" +
+              '<span class="sbox-t">' + esc(p.title) + draft + "</span></li>";
+          }
+          return '<li><a href="post.html?p=' + encodeURIComponent(p.slug) + '">' +
+            '<span class="sbox-no">' + no + "</span>" +
+            '<span class="sbox-t">' + esc(p.title) + draft + "</span></a></li>";
+        }).join("");
+        box.innerHTML = '<div class="sbox-head"><span class="sbox-label">本合集</span>' +
+          "<b>" + esc(cur.series) + "</b><em>共 " + list.length + " 篇</em></div>" +
+          '<ol class="sbox-list">' + rows + "</ol>" +
+          '<a class="sbox-all" href="index.html#series">查看全部合集 →</a>';
+        box.hidden = false;
+        centerCurrent(box);
+      }
+    });
+  }
+
+  /* 宽屏下合集目录是左侧固定侧栏，列表自己滚：
+     读第 12 篇时把第 12 条滚到中间，否则一进来看到的还是前几条。
+     用 getBoundingClientRect 算偏移——offsetTop 的参照系是最近的定位祖先，不可靠 */
+  function centerCurrent(box) {
+    var list = box.querySelector(".sbox-list");
+    var cur = list && list.querySelector("li.is-cur");
+    if (!list || !cur) return;
+    if (list.scrollHeight <= list.clientHeight + 4) return; // 没超出就不用滚
+    var lr = list.getBoundingClientRect();
+    var cr = cur.getBoundingClientRect();
+    list.scrollTop += (cr.top - lr.top) - (lr.height - cr.height) / 2;
+  }
+
   /* 上一篇 / 下一篇 */
   function buildNav() {
-    fetch("posts.json", { cache: contentCache })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (data) {
-        if (!data) return;
-        var posts = data.posts || [];
-        var i = -1;
-        for (var k = 0; k < posts.length; k++) if (posts[k].slug === slug) { i = k; break; }
-        if (i < 0) return;
-        var newer = posts[i - 1], older = posts[i + 1];
-        var box = $("#postNav");
-        if (!box) return;
-        var html = "";
-        if (newer) {
-          html += '<a href="post.html?p=' + encodeURIComponent(newer.slug) +
-            '"><span class="dir">← 更新一篇</span><span class="t">' + esc(newer.title) + "</span></a>";
-        }
-        if (older) {
-          html += '<a class="next" href="post.html?p=' + encodeURIComponent(older.slug) +
-            '"><span class="dir">更早一篇 →</span><span class="t">' + esc(older.title) + "</span></a>";
-        }
-        box.innerHTML = html;
-      })
-      .catch(function () {});
+    loadIndex().then(function (data) {
+      if (!data) return;
+      var posts = data.posts || [];
+      var i = -1;
+      for (var k = 0; k < posts.length; k++) if (posts[k].slug === slug) { i = k; break; }
+      if (i < 0) return;
+      var box = $("#postNav");
+      if (!box) return;
+
+      /* 属于合集时优先走系列内的顺序：读完（二）直接跳（三），
+         比「跳到全站更早的一篇无关文章」有用得多 */
+      var series = seriesOf(posts, posts[i]);
+      var newer = null, older = null;
+      var dirNewer = "← 更新一篇", dirOlder = "更早一篇 →";
+      if (series) {
+        var si = 0;
+        for (var j = 0; j < series.length; j++) if (series[j].slug === slug) { si = j; break; }
+        newer = series[si - 1] || null;
+        older = series[si + 1] || null;
+        dirNewer = "← 合集上一篇";
+        dirOlder = "合集下一篇 →";
+      } else {
+        newer = posts[i - 1];
+        older = posts[i + 1];
+      }
+
+      var html = "";
+      if (newer) {
+        html += '<a href="post.html?p=' + encodeURIComponent(newer.slug) +
+          '"><span class="dir">' + dirNewer + '</span><span class="t">' + esc(newer.title) + "</span></a>";
+      }
+      if (older) {
+        html += '<a class="next" href="post.html?p=' + encodeURIComponent(older.slug) +
+          '"><span class="dir">' + dirOlder + '</span><span class="t">' + esc(older.title) + "</span></a>";
+      }
+      box.innerHTML = html;
+    });
   }
 
   /* 阅读进度条 */
@@ -443,6 +539,7 @@
     }
 
     buildNav();
+    buildSeries();
     var loading = true;
     fetch(postUrl, { cache: contentCache })
       .then(function (r) {
@@ -468,6 +565,7 @@
             if (text && text !== lastRaw) {
               renderArticle(text);
               buildNav();
+              buildSeries();
             }
           })
           .catch(function () {})

@@ -3,6 +3,7 @@ title: "[CNSS2026 web] 当CNSS娘遇见..."
 date: 2026-08-27
 tags: CNSS, CTF
 category: CNSS2026 writeup
+series: CNSS2026 writeup
 draft: false 
 ---
 靶机打开是一个输入框：

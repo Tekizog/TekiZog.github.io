@@ -92,13 +92,15 @@ function postHarness(hostname = 'example.com') {
 }
 
 test('external scripts are deferred, unique and dependency-ordered in the head', () => {
+  /* 只比路径与顺序：?v= 是缓存版本号，每次改前端都要动，不该让这条测试跟着改 */
+  const bare = src => src.split('?')[0];
   for (const name of ['index.html', 'post.html']) {
     const html = read(name);
     const scripts = [...html.matchAll(/<script\b([^>]*\bsrc="([^"]+)"[^>]*)>/g)];
     const expected = name === 'index.html'
-      ? ['assets/config.js?v=20260913', 'assets/js/site.js']
-      : ['assets/config.js?v=20260913', 'assets/js/marked.min.js', 'assets/js/site.js', 'assets/js/post.js'];
-    assert.deepEqual(scripts.map(match => match[2]), expected);
+      ? ['assets/config.js', 'assets/js/site.js']
+      : ['assets/config.js', 'assets/js/marked.min.js', 'assets/js/site.js', 'assets/js/post.js'];
+    assert.deepEqual(scripts.map(match => bare(match[2])), expected);
     for (const script of scripts) {
       assert.match(script[1], /\bdefer\b/);
       assert.ok(script.index < html.indexOf('</head>'));

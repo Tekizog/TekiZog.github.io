@@ -215,30 +215,31 @@
     }, { once: true });
   }
 
-  /* ---------- 首页多视图：封面 ⇄ 手记 ⇄ 关于（独立页面，切换动画） ---------- */
+  /* ---------- 首页多视图：封面 ⇄ 手记 ⇄ 合集 ⇄ 归档 ⇄ 关于（独立页面，切换动画） ---------- */
   function initHomeCover() {
     var cover = $("#viewCover"), notes = $("#viewNotes"), about = $("#viewAbout");
-    var archive = $("#viewArchive");
+    var archive = $("#viewArchive"), series = $("#viewSeries");
     if (!cover || !notes || !about) return;
 
     var at = "cover";
-    var HASH = { cover: "", notes: "#notes", archive: "#archive", about: "#about" };
+    var HASH = { cover: "", notes: "#notes", series: "#series", archive: "#archive", about: "#about" };
     var apply = function (view) {
       var wasContent = at !== "cover";
       at = view;
       /* 注：封面在手记视图里已经是 opacity: 0（只后退 42% 并淡出），
          所以切到关于时即使 transform 被归零也看不见，不会再闪主页 */
       document.body.classList.toggle("at-notes", view === "notes");
+      document.body.classList.toggle("at-series", view === "series");
       document.body.classList.toggle("at-archive", view === "archive");
       document.body.classList.toggle("at-about", view === "about");
-      /* 从内容页（手记/归档/关于）切走时：位置变化瞬移完成（不播滑动动画），只做淡入淡出；
+      /* 从内容页（手记/合集/归档/关于）切走时：位置变化瞬移完成（不播滑动动画），只做淡入淡出；
          目标视图延后 0.18s 再淡入，等旧视图先退场，避免两个版式叠在一起 */
       if (wasContent) {
-        [cover, notes, about, archive].forEach(function (v) {
+        [cover, notes, about, archive, series].forEach(function (v) {
           if (v) v.style.transition = "opacity .35s ease .18s";
         });
         setTimeout(function () {
-          [cover, notes, about, archive].forEach(function (v) { if (v) v.style.transition = ""; });
+          [cover, notes, about, archive, series].forEach(function (v) { if (v) v.style.transition = ""; });
         }, 600);
       }
       $$(".nav-links a[data-nav]").forEach(function (a) {
@@ -267,6 +268,7 @@
     };
     var toAbout = function () { apply("about"); };
     var toArchive = function () { apply("archive"); };
+    var toSeries = function () { apply("series"); };
     var toCover = function () { apply("cover"); };
 
     /* 导航与按钮接管（页面间独立切换，不依赖滚动） */
@@ -275,6 +277,7 @@
         e.preventDefault();
         var v = a.getAttribute("data-nav");
         if (v === "notes") toNotes(a.getAttribute("data-scroll"));
+        else if (v === "series") toSeries();
         else if (v === "archive") toArchive();
         else if (v === "about") toAbout();
         else toCover();
@@ -284,6 +287,7 @@
     /* 带 hash 进入（含刷新恢复）：直接落在对应视图。
        #posts 是文章页「手记」链接用的锚点（index.html 里文章列表的 section id），等同 #notes */
     if (location.hash === "#about") toAbout();
+    else if (location.hash === "#series") toSeries();
     else if (location.hash === "#archive") toArchive();
     else if (location.hash === "#notes" || location.hash === "#posts") toNotes();
 
@@ -292,6 +296,7 @@
     window.addEventListener("hashchange", function () {
       var h = location.hash;
       if (h === "#about") toAbout();
+      else if (h === "#series") toSeries();
       else if (h === "#archive") toArchive();
       else if (h === "#notes" || h === "#posts") toNotes();
       else if (!h) toCover();
@@ -635,16 +640,19 @@
      1) IO 的回调要等浏览器统一派发，实测卡片已经滑出边界 ~50ms 才开始淡出；
      2) IO 只能判断"在/不在"，淡出是一段固定时长的动画，与滚动位置无关，
         卡片往往在屏幕外就淡完了——看起来就是"没触发"。
-     现在改成每帧按卡片与视口上下边缘的距离直接算透明度：
-     露出一半就半透明，完全离开才为 0，滚到哪就渲染到哪，天然跟手。 */
+     现在改成每帧按卡片露出多少像素直接算透明度：露出得越多越实，
+     完全离开才是 0，滚到哪就渲染到哪，天然跟手。 */
   var revealEls = [];
   var revealRaf = 0, revealRunning = false, revealLast = 0, revealPumpUntil = 0;
 
-  /* 判定基准就是元素自身高度：一张卡被切掉一半就算"走了一半"，
-     与视口大小无关，卡片多高就按多高算 */
-  function revealZone(h) {
-    return h || 1;
-  }
+  /* 露出多少像素就算「进来了」。
+     这里原来用的是「露出 55% 的卡片高度」，而且离开 55%、进入 59%——
+     264px 的卡片要露出 145px 才算显示，底部刚探头的卡片直接隐身；
+     更麻烦的是两个方向阈值不同，同一个滚动位置会出现
+     「往上滚看得见、往下滚看不见」的差异（相差 10px 就翻脸）。
+     改成按像素、连续渐变：露出 REVEAL_EDGE 就完全实，中间按比例过渡，
+     与卡片高度和滚动方向都无关。 */
+  var REVEAL_EDGE = 56;
 
   /* 每帧把当前透明度向目标值插值。
      滚轮一格是整段跳（实测 scrollTop 0 → 120 → 240，中间没有帧），
@@ -671,17 +679,13 @@
       var top = r.top - dy, bottom = r.bottom - dy;
       var vis = Math.min(r.height, bottom, H - top);
       if (vis < 0) vis = 0;
-      var zone = revealZone(r.height);
-      /* 二值判定 + 迟滞：可见不足 55% 就消失（被遮住 45% 以上）。
-         - 已在显示 → 露出不足 55% 判定"离开"；
-         - 已隐藏 → 回到 59% 以上才判定"进入"。
-         注意离开阈值必须小于进入阈值，否则同一位置会在两个状态间反复横跳。
-         判定离开后透明度一路走到 0（整张消失 + 下落 24px） */
-      var on = el.__on !== false;
-      var need = zone * (on ? 0.55 : 0.59);
-      on = vis >= need;
-      el.__on = on;
-      var target = on ? 1 : 0;
+      /* 连续渐变：露出不足 56px 时按比例淡入，超过就是全实。
+         没有二值判定、没有迟滞，所以往上滚和往下滚在同一个位置结果完全一致；
+         底部刚探头 20px 的卡片也会有 36% 的透明度，不会整行凭空消失。
+         fade 距离取 min(56, 元素高度)——工具栏、提示条这类比 56px 还矮的元素，
+         露满自己也就 36px，用固定 56px 当分母永远到不了 1，会一直半透明 */
+      var fade = Math.min(REVEAL_EDGE, r.height);
+      var target = vis >= fade ? 1 : vis / fade;
       var cur = el.__op == null ? target : el.__op;
       var next = cur + (target - cur) * ease;
       if (Math.abs(target - next) < 0.008) next = target;
@@ -701,7 +705,16 @@
   }
 
   function runReveal(now) {
-    var settled = stepReveal(now);
+    var settled;
+    try {
+      settled = stepReveal(now);
+    } catch (err) {
+      /* 兜底：这里一旦抛异常，revealRunning 会永远停在 true，
+         queueReveal 之后全部空转，卡片就卡在半透明状态再也不动了 */
+      revealRunning = false;
+      revealRaf = 0;
+      return;
+    }
     if (settled && now >= revealPumpUntil) { revealRunning = false; revealRaf = 0; return; }
     revealRaf = requestAnimationFrame(runReveal);
   }
@@ -778,13 +791,16 @@
         return '<span class="chip"># ' + esc(t) + "</span>";
       }).join("");
       var draft = p.draft ? '<span class="chip chip-draft">草稿</span>' : "";
+      /* 没写 excerpt 的文章，build.py 会从正文开头截一段放在 snippet 里，
+         保证每张卡片都有摘要区，不会一块高一块矮 */
+      var blurb = p.excerpt || p.snippet || "";
       return (
         '<div class="card-wrap">' +
         '<article class="card">' +
         '<a class="card-link" href="post.html?p=' + encodeURIComponent(p.slug) + '">' +
         '<div class="card-meta"><time>' + fmtDate(p.date) + '</time><span class="dot">·</span><span>约 ' + (p.minutes || 1) + ' 分钟</span>' + draft + '</div>' +
         '<h3 class="card-title">' + esc(p.title) + "</h3>" +
-        (p.excerpt ? '<p class="card-excerpt">' + esc(p.excerpt) + "</p>" : "") +
+        (blurb ? '<p class="card-excerpt">' + esc(blurb) + "</p>" : '<p class="card-excerpt is-empty" aria-hidden="true"></p>') +
         '<div class="card-foot"><span class="chip-row">' + tags + '</span><span class="card-go">阅读全文 →</span></div>' +
         "</a></article></div>"
       );
@@ -1265,6 +1281,70 @@
       renderArchive(byDate(list));
     }
 
+    /* ---------- 合集视图 ---------- */
+    /* 同一 series 的文章归成一个合集：合集内按 seriesOrder 排（没写序号的按日期），
+       合集之间按「最近更新」倒序——刚补完的系列排在最前面 */
+    function seriesGroups() {
+      var map = {}, order = [];
+      (window.__POSTS__ || []).forEach(function (p) {
+        if (!p.series) return;
+        if (!map[p.series]) { map[p.series] = []; order.push(p.series); }
+        map[p.series].push(p);
+      });
+      var groups = order.map(function (name) {
+        var list = map[name].sort(function (a, b) {
+          var oa = a.seriesOrder == null ? 1e9 : a.seriesOrder;
+          var ob = b.seriesOrder == null ? 1e9 : b.seriesOrder;
+          return oa - ob || (a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+        });
+        var dates = list.map(function (p) { return p.date || ""; }).sort();
+        return {
+          name: name, list: list,
+          first: dates[0] || "", last: dates[dates.length - 1] || ""
+        };
+      });
+      groups.sort(function (a, b) { return a.last < b.last ? 1 : a.last > b.last ? -1 : 0; });
+      return groups;
+    }
+
+    function renderSeries() {
+      var box = $("#seriesList");
+      if (!box) return;
+      var groups = seriesGroups();
+      if (!groups.length) {
+        box.innerHTML = '<div class="empty">🌸 还没有合集。<br>在文章的 front matter 里写上 ' +
+          "<code>series: 合集名</code>，同一系列的文章就会自动归到这里。</div>";
+        return;
+      }
+      box.innerHTML = groups.map(function (g) {
+        /* config.js 里可以给合集补一句简介；没配置就借用第一篇的摘要 */
+        var cfg = (C.series && C.series[g.name]) || {};
+        var desc = cfg.desc || (g.list[0] && g.list[0].excerpt) || "";
+        var span = !g.first ? "" :
+          g.first === g.last ? fmtDate(g.first) : fmtDate(g.first) + " – " + fmtDate(g.last);
+        var rows = g.list.map(function (p, i) {
+          var no = ("0" + (i + 1)).slice(-2);
+          var draft = p.draft ? '<span class="chip chip-draft">草稿</span>' : "";
+          return '<li><a class="sa-row" href="post.html?p=' + encodeURIComponent(p.slug) + '">' +
+            '<span class="sa-no">' + no + "</span>" +
+            '<span class="sa-title">' + esc(p.title) + draft + "</span>" +
+            '<span class="sa-date">' + fmtDate(p.date).slice(5) + "</span>" +
+            "</a></li>";
+        }).join("");
+        return '<article class="series-card is-open" data-series="' + esc(g.name) + '">' +
+          '<button class="series-head" type="button" data-series-toggle aria-expanded="true">' +
+            '<span class="series-name">' + esc(g.name) + "</span>" +
+            '<span class="series-meta"><em>' + g.list.length + " 篇</em>" +
+              (span ? "<span>" + span + "</span>" : "") + "</span>" +
+            '<span class="series-caret" aria-hidden="true"></span>' +
+          "</button>" +
+          (desc ? '<p class="series-desc">' + esc(desc) + "</p>" : "") +
+          '<div class="series-body"><div class="series-body-in"><ol class="series-articles">' +
+            rows + "</ol></div></div>" +
+          "</article>";
+      }).join("");
+    }
+
     /* 时间范围的短标签：09.01 – 09.30 / 09.01 之后 / 09.30 之前 */
     function rangeLabel() {
       var f = state.from ? fmtDate(state.from).slice(5) : "";
@@ -1332,6 +1412,18 @@
         window.__POSTS_RAW__ = JSON.stringify(window.__POSTS__);
         renderCats();
         scrollActiveChip();
+        renderSeries();
+
+        /* 合集卡片展开 / 收起：绑在容器上，重绘后不用重新绑定 */
+        var seriesBox = $("#seriesList");
+        if (seriesBox) seriesBox.addEventListener("click", function (e) {
+          var btn = e.target.closest("[data-series-toggle]");
+          if (!btn) return;
+          var card = btn.closest(".series-card");
+          if (!card) return;
+          var open = card.classList.toggle("is-open");
+          btn.setAttribute("aria-expanded", open ? "true" : "false");
+        });
 
         /* 分类点击：绑在容器上，renderCats 重绘按钮时不用重新绑定 */
         var rail = $("#catRail");
@@ -1390,6 +1482,7 @@
                 window.__POSTS_RAW__ = raw;
                 window.__POSTS__ = data.posts || [];
                 renderCats();
+                renderSeries();
                 apply();
               })
               .catch(function () {})

@@ -9,7 +9,7 @@
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
   <link rel="preload" as="image" href="assets/img/poster.webp" media="(min-width: 721px)">
   <link rel="preload" as="image" href="assets/img/poster-sm.webp" media="(max-width: 720px)">
-  <link rel="stylesheet" href="assets/css/style.css?v=20261021C">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261026H">
   <script>
     /* 首帧前恢复主题：夜樱用户刷新时不闪一下昼樱 */
     try {
@@ -18,10 +18,10 @@
       if (__t) document.documentElement.setAttribute("data-theme", __t);
     } catch (e) {}
   </script>
-  <script defer src="assets/config.js?v=20261020"></script>
+  <script defer src="assets/config.js?v=20261026H"></script>
   <script defer src="assets/js/marked.min.js"></script>
-  <script defer src="assets/js/site.js?v=20261021C"></script>
-  <script defer src="assets/js/post.js?v=20261021C"></script>
+  <script defer src="assets/js/site.js?v=20261026H"></script>
+  <script defer src="assets/js/post.js?v=20261026H"></script>
 </head>
 <body>
 
@@ -67,6 +67,7 @@
     <nav class="nav-links">
       <a class="nav-keep" href="index.html">首页</a>
       <a class="nav-keep" href="index.html#posts">手记</a>
+      <a class="nav-keep" href="index.html#series">合集</a>
       <a class="nav-keep" href="index.html#archive">归档</a>
       <a class="nav-keep" href="index.html#about">关于</a>
       <a id="ghLink" target="_blank" rel="noopener">GitHub</a>
@@ -109,6 +110,7 @@
       <h1 id="postTitle">加载中…</h1>
       <div class="post-title-bar" aria-hidden="true"></div>
       <p class="post-meta" id="postMeta"></p>
+      <div class="post-series" id="postSeries" hidden></div>
     </div>
   </div>
 
@@ -118,6 +120,7 @@
     </article>
 
     <div class="post-foot">
+      <div class="series-box" id="seriesBox" hidden></div>
       <div class="post-actions">
         <button class="btn btn-ghost" id="copyLink">🔗 复制文章链接</button>
         <a class="btn btn-ghost" href="index.html">🏠 回到首页</a>
